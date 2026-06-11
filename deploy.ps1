@@ -33,6 +33,11 @@ if (-not $PularOfuscacao) {
 
 Write-Host "`n[Comittando...]" -ForegroundColor Cyan
 git add .
+$diff = git diff --cached --stat
+if (-not $diff) {
+    Write-Host "[OK] Nada novo pra commitar. Pulando push." -ForegroundColor Yellow
+    exit 0
+}
 git commit -m $Mensagem
 if (-not $?) {
     Write-Host "[ERRO] Commit falhou." -ForegroundColor Red

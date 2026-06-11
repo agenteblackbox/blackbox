@@ -22,7 +22,7 @@ async function obfuscar(html, filename) {
     try {
       const out = await Terser.minify(content, {
         compress: { passes: 2, drop_console: false, unsafe: false },
-        mangle: { toplevel: true, properties: false },
+        mangle: { toplevel: true, properties: false, keep_fnames: true },
         output: { beautify: false, comments: false }
       });
 
