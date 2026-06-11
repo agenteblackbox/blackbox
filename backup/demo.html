@@ -1,0 +1,1128 @@
+<!doctype html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+<script>{(function(){const t=localStorage.getItem('bb-theme');if(t==='light')document.documentElement.setAttribute('data-theme','light');const o=localStorage.getItem('bb-oculos');if(o==='active')document.documentElement.setAttribute('data-oculos','active')})()}</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=5">
+<title>BlackBox · Diagnóstico Demonstrativo</title>
+<meta name="description" content="Demonstração interativa do BlackBox Agente — 17 módulos com dados de exemplo, charts, radar, SWOT, ROI, plano de ação.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;300;400;500;600&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+svg.lucide{color:inherit;stroke-width:1.3}
+html{scroll-behavior:smooth;background:var(--bg)}
+body{background:var(--bg);color:var(--fg);font-family:var(--sans);overflow-x:hidden;-webkit-font-smoothing:antialiased;font-size:16px;line-height:1.6}
+::selection{background:var(--accent);color:#fff}
+
+:root{--bg:#09090b;--bg2:#0e0e10;--bg3:#141416;--card:rgba(20,20,22,0.35);--card-hover:rgba(28,28,32,0.6);--glass:rgba(255,255,255,0.02);--border:rgba(255,255,255,0.04);--border-hover:rgba(255,255,255,0.08);--fg:#f4f4f5;--fg2:#a1a1aa;--fg3:#52525b;--accent:#7c3aed;--accent-dim:rgba(124,58,237,0.08);--gold:#c8962e;--teal:#2a8a8a;--amber:#f59e0b;--rose:#e11d48;--green:#10b981;--red:#e01010;--sans:'Plus Jakarta Sans',sans-serif;--mono:'JetBrains Mono',monospace;--radius:8px;--ease:cubic-bezier(0.4,0,0.1,1);--glow:0 0 20px rgba(124,58,237,0.15),0 0 60px rgba(124,58,237,0.06);--glow-intense:0 0 30px rgba(124,58,237,0.25),0 0 80px rgba(124,58,237,0.1),0 0 120px rgba(124,58,237,0.05);--aura-opacity:0.22}
+
+[data-theme="light"]{--bg:#f3f3f7;--bg2:#eaeaef;--bg3:#ffffff;--card:rgba(255,255,255,0.75);--card-hover:rgba(255,255,255,0.95);--glass:rgba(0,0,0,0.012);--border:rgba(0,0,0,0.07);--border-hover:rgba(0,0,0,0.14);--fg:#17171c;--fg2:#555566;--fg3:#8c8c9e;--accent:#6d28d9;--accent-dim:rgba(109,40,217,0.07);--gold:#986820;--teal:#2a8a8a;--amber:#d97706;--rose:#e11d48;--green:#059669;--red:#b01010;--glow:0 0 30px rgba(109,40,217,0.08),0 0 60px rgba(109,40,217,0.03);--glow-intense:0 0 40px rgba(109,40,217,0.12),0 0 80px rgba(109,40,217,0.05);--aura-opacity:0.06}
+[data-theme="light"] .grid-bg{opacity:0.025;background-image:linear-gradient(rgba(0,0,0,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(0,0,0,0.025) 1px,transparent 1px)}
+[data-theme="light"] .nav{background:rgba(243,243,247,0.75);backdrop-filter:blur(60px);-webkit-backdrop-filter:blur(60px);border-image:linear-gradient(90deg,var(--border) 0%,rgba(109,40,217,0.12) 50%,var(--border) 100%) 1}
+[data-theme="light"] .nav a{color:var(--fg3)}
+[data-theme="light"] .nav a:hover{color:var(--fg);border-color:rgba(109,40,217,0.15);background:rgba(109,40,217,0.05);text-shadow:0 0 4px rgba(109,40,217,0.3)}
+[data-theme="light"] .nav .badge-demo{background:rgba(109,40,217,0.08);border-color:rgba(109,40,217,0.15);color:var(--accent)}
+[data-theme="light"] .theme-btn{color:var(--fg3)}
+[data-theme="light"] .theme-btn:hover{color:var(--fg)}
+
+.grid-bg{position:fixed;inset:0;z-index:0;pointer-events:none;background-image:linear-gradient(rgba(255,255,255,0.012) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.012) 1px,transparent 1px);background-size:64px 64px}
+.bg-aura{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.bg-aura .orb{position:absolute;border-radius:50%;filter:blur(100px);opacity:0;animation:auraPulse 6s ease-in-out infinite}
+.bg-aura .orb:nth-child(1){--o:0.22;width:700px;height:700px;background:var(--accent);top:-20%;left:-15%;animation-delay:0s}
+.bg-aura .orb:nth-child(2){--o:0.12;width:500px;height:500px;background:rgba(124,58,237,0.5);bottom:-10%;right:-10%;animation-delay:-2s}
+.bg-aura .orb:nth-child(3){--o:0.09;width:400px;height:400px;background:rgba(139,92,246,0.4);top:30%;left:55%;animation-delay:-4s}
+.bg-aura .orb:nth-child(4){--o:0.06;width:350px;height:350px;background:var(--accent);top:60%;left:-5%;animation-delay:-1s}
+@keyframes auraPulse{0%,100%{transform:translate(0,0) scale(1);opacity:var(--o)}25%{transform:translate(40px,-30px) scale(1.15)}50%{transform:translate(-30px,40px) scale(0.88);opacity:calc(var(--o)*0.55)}75%{transform:translate(30px,30px) scale(1.08)}}
+.bg-rays{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.bg-rays .ray{position:absolute;width:1px;background:linear-gradient(180deg,transparent,rgba(124,58,237,0.12),transparent);animation:rayDrift 8s linear infinite}
+.bg-rays .ray:nth-child(1){height:300px;left:8%;top:-10%;animation-delay:0s;animation-duration:7s}
+.bg-rays .ray:nth-child(2){height:200px;left:22%;top:20%;animation-delay:-1.5s;animation-duration:9s}
+.bg-rays .ray:nth-child(3){height:400px;left:38%;top:-15%;animation-delay:-3s;animation-duration:6s}
+.bg-rays .ray:nth-child(4){height:250px;left:55%;top:30%;animation-delay:-4s;animation-duration:8s}
+.bg-rays .ray:nth-child(5){height:350px;left:70%;top:-20%;animation-delay:-2s;animation-duration:7.5s}
+.bg-rays .ray:nth-child(6){height:180px;left:85%;top:40%;animation-delay:-5s;animation-duration:9s}
+.bg-rays .ray:nth-child(7){height:280px;left:15%;top:50%;animation-delay:-6s;animation-duration:8s}
+.bg-rays .ray:nth-child(8){height:320px;left:48%;top:-5%;animation-delay:-2.5s;animation-duration:7s}
+.bg-rays .ray:nth-child(9){height:220px;left:63%;top:10%;animation-delay:-3.5s;animation-duration:8.5s}
+.bg-rays .ray:nth-child(10){height:380px;left:92%;top:-25%;animation-delay:-1s;animation-duration:6.5s}
+@keyframes rayDrift{0%{opacity:0;transform:translateY(0) scaleY(1)}15%{opacity:1}50%{opacity:0.3;transform:translateY(40vh) scaleY(0.6)}85%{opacity:0.6}100%{opacity:0;transform:translateY(90vh) scaleY(0.3)}}
+.bg-crystals{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.bg-crystals .c{position:absolute;width:2px;height:2px;background:rgba(124,58,237,0.25);border-radius:0;animation:crystalFloat 5s ease-in-out infinite;transform:rotate(45deg)}
+.bg-crystals .c:nth-child(1){left:12%;top:15%;animation-delay:0s;animation-duration:4.2s}
+.bg-crystals .c:nth-child(2){left:45%;top:70%;animation-delay:-1.2s;animation-duration:5.6s;width:3px;height:3px;background:rgba(139,92,246,0.2)}
+.bg-crystals .c:nth-child(3){left:78%;top:30%;animation-delay:-2.5s;animation-duration:4.8s}
+.bg-crystals .c:nth-child(4){left:30%;top:80%;animation-delay:-3.8s;animation-duration:5.2s;width:1px;height:4px;background:rgba(124,58,237,0.15)}
+.bg-crystals .c:nth-child(5){left:65%;top:10%;animation-delay:-0.5s;animation-duration:4.5s;width:3px;height:3px}
+.bg-crystals .c:nth-child(6){left:52%;top:45%;animation-delay:-2s;animation-duration:5s;width:1px;height:3px;background:rgba(167,139,250,0.15)}
+.bg-crystals .c:nth-child(7){left:20%;top:55%;animation-delay:-4s;animation-duration:4.3s;width:2px;height:2px}
+.bg-crystals .c:nth-child(8){left:88%;top:75%;animation-delay:-1.8s;animation-duration:5.4s;width:3px;height:1px;background:rgba(124,58,237,0.12)}
+@keyframes crystalFloat{0%{opacity:0;transform:translateY(0) rotate(45deg) scale(1)}20%{opacity:1}50%{opacity:0.5;transform:translateY(-30px) rotate(135deg) scale(0.7)}80%{opacity:0.8}100%{opacity:0;transform:translateY(-60px) rotate(225deg) scale(0.3)}}
+
+body::after{content:'';position:fixed;inset:0;z-index:-1;opacity:0.04;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");background-size:100px;pointer-events:none}
+
+.card{background:var(--card);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid var(--border);padding:28px;border-radius:var(--radius);transition:all 0.3s ease}
+.card:hover{border-color:rgba(124,58,237,0.18);background:var(--card-hover);transform:translateY(-2px);box-shadow:var(--glow)}
+.reveal{opacity:0;transform:translateY(16px);filter:blur(4px);transition:opacity 0.7s var(--ease),transform 0.7s var(--ease),filter 0.7s var(--ease)}
+.reveal.visible{opacity:1;transform:translateY(0);filter:blur(0)}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+
+.nav{position:fixed;top:0;left:0;right:0;z-index:9999;padding:0 24px;height:52px;background:rgba(5,3,8,0.4);backdrop-filter:blur(80px);-webkit-backdrop-filter:blur(80px);border-bottom:1px solid transparent;border-image:linear-gradient(90deg,var(--border) 0%,rgba(124,58,237,0.2) 50%,var(--border) 100%) 1;box-shadow:0 1px 0 rgba(124,58,237,0.06);display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;align-items:center}
+.nav::-webkit-scrollbar{display:none}
+.nav .brand{font-family:var(--mono);font-size:13px;font-weight:700;color:var(--fg);margin-right:14px;white-space:nowrap;display:flex;align-items:center;gap:10px;flex-shrink:0;text-decoration:none}
+.nav .brand .cube{display:inline-flex;width:26px;height:26px;border:1.5px solid rgba(192,192,192,0.12);border-radius:5px;align-items:center;justify-content:center;flex-shrink:0;position:relative;background:var(--card);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);animation:navPulse 2.4s ease-in-out infinite}
+.nav .brand .cube::after{content:'';position:absolute;inset:-1px;border-radius:6px;border:1px solid var(--accent);opacity:0;animation:bbGlow 2.4s ease-in-out infinite;pointer-events:none}
+.nav .brand .cube .cg{display:grid;grid-template-columns:1fr 1fr;gap:3px}.nav .brand .cube .cg span{width:6px;height:6px;border:1px solid rgba(192,192,192,0.06);border-radius:1.5px;transition:border-color 0.3s}.nav .brand .cube .cg span:nth-child(1),.nav .brand .cube .cg span:nth-child(4){border-color:var(--accent);border-width:1.5px}
+.nav .brand .cube:hover{transform:scale(1.08);box-shadow:0 0 20px var(--accent-dim);transition:transform 0.18s ease,box-shadow 0.18s ease}
+.nav .brand .label{background:linear-gradient(90deg,var(--fg) 30%,var(--accent) 50%,var(--fg) 70%);background-size:220% 100%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:bbEnergy 4s ease-in-out infinite}
+.nav .brand .label:hover{filter:drop-shadow(0 0 6px rgba(124,58,237,0.5))drop-shadow(0 0 24px rgba(124,58,237,0.25))}
+.nav .brand .dot{color:var(--accent);animation:brandDot 1.5s step-end infinite}
+@keyframes brandDot{0%,100%{opacity:1}50%{opacity:0}}
+@keyframes navPulse{0%{transform:scale(1);box-shadow:0 0 6px rgba(124,58,237,0.06)}50%{transform:scale(1.06);box-shadow:0 0 16px rgba(124,58,237,0.15)}100%{transform:scale(1);box-shadow:0 0 6px rgba(124,58,237,0.06)}}
+.nav a{font-family:var(--mono);font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.5);text-decoration:none;white-space:nowrap;padding:3px 12px;border:1px solid transparent;flex-shrink:0;line-height:44px;border-radius:5px;transition:all 0.2s ease;position:relative}
+.nav a:hover{color:var(--fg);border-color:rgba(124,58,237,0.2);background:rgba(124,58,237,0.08);text-shadow:0 0 6px rgba(124,58,237,0.4),0 0 24px rgba(124,58,237,0.15)}
+.nav .badge-demo{font-family:var(--mono);font-size:8px;letter-spacing:0.1em;text-transform:uppercase;color:var(--accent);border:1px solid var(--border);padding:4px 10px;margin-left:auto;white-space:nowrap;border-radius:4px}
+.theme-btn{background:none;border:none;cursor:pointer;font-size:15px;line-height:1;padding:0 6px;transition:transform 0.2s;flex-shrink:0;color:var(--fg3)}
+.theme-btn:hover{transform:scale(1.15)}
+.oculos-btn svg{width:18px;height:18px;stroke-width:1.5;transition:color .2s;color:var(--fg3);display:block}
+[data-oculos="active"] .oculos-btn svg{color:var(--accent)}
+[data-theme="light"] .oculos-btn svg{color:var(--fg3)}
+.progress-track{position:fixed;top:52px;left:0;right:0;z-index:9998;height:2px;background:var(--border)}
+.progress-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--accent),rgba(139,92,246,0.5));transition:width 0.1s linear}
+
+@keyframes bbGlow{0%,100%{opacity:0}50%{opacity:0.7}}
+@keyframes bbEnergy{0%{background-position:200% 0}50%{background-position:0% 0}100%{background-position:-100% 0}}
+
+.section{padding:72px 28px;position:relative;z-index:2}
+.section-inner{max-width:960px;margin:0 auto;position:relative;z-index:1}
+.section-label{font-family:var(--mono);font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--fg3);text-align:center;margin-bottom:8px}
+.section-title{font-size:26px;font-weight:400;color:var(--fg);text-align:center;margin-bottom:6px;letter-spacing:-0.02em}
+.section-desc{font-size:14px;color:var(--fg2);text-align:center;max-width:540px;margin:0 auto 40px;font-weight:300;line-height:1.7}
+
+.hero{min-height:80dvh;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;padding:100px 24px 48px;z-index:2}
+.hero-bg{position:absolute;inset:0;z-index:0}
+.hero-bg .g{position:absolute;inset:0;background:radial-gradient(ellipse at 30% 20%,var(--accent-dim) 0%,transparent 50%),radial-gradient(ellipse at 70% 80%,var(--accent-dim) 0%,transparent 50%)}
+.hero-content{position:relative;z-index:3;text-align:center;max-width:640px}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;padding:8px 20px;border:1px solid var(--border);border-radius:999px;font-family:var(--mono);font-size:12px;color:var(--fg3);letter-spacing:0.04em;transition:border-color 0.3s,box-shadow 0.3s;margin-bottom:20px}
+.hero-badge .tag{color:var(--accent)}
+.hero-title{font-size:clamp(32px,6vw,52px);font-weight:300;color:var(--fg);margin-bottom:12px;letter-spacing:-0.03em;line-height:1.1}
+.hero-title .hl{font-weight:600;color:var(--accent)}
+.hero-sub{font-size:15px;color:var(--fg2);font-weight:300;max-width:520px;margin:0 auto;line-height:1.7}
+.hero-trust{display:flex;align-items:center;justify-content:center;gap:6px 20px;flex-wrap:wrap;margin-top:20px;font-size:12px;color:var(--fg3);font-family:var(--mono)}
+.hero-trust .check{color:var(--green)}
+
+.bb-logo-wrap{display:flex;justify-content:center;margin-bottom:28px}.bb-cube{width:100px;height:100px;border:1.5px solid rgba(192,192,192,0.12);border-radius:10px;display:flex;align-items:center;justify-content:center;position:relative;background:var(--card);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);animation:bbPulse 2.4s ease-in-out infinite}.bb-cube::after{content:'';position:absolute;inset:-2px;border-radius:12px;border:1.5px solid var(--accent);opacity:0;box-shadow:var(--glow-intense);animation:bbGlow 2.4s ease-in-out infinite}.bb-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.bb-grid span{width:22px;height:22px;border:1.5px solid rgba(192,192,192,0.06);border-radius:3px;transition:all 0.3s}.bb-grid span:nth-child(1),.bb-grid span:nth-child(4){border-color:var(--accent);border-width:2px;box-shadow:0 0 8px rgba(124,58,237,0.08)}.bb-label{font-family:var(--mono);font-size:13px;font-weight:700;letter-spacing:0.2em;margin-top:2px;background:linear-gradient(90deg,var(--fg) 30%,var(--accent) 45%,var(--fg) 60%,var(--fg) 100%);background-size:220% 100%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:bbEnergy 4s ease-in-out infinite}@keyframes bbPulse{0%{transform:scale(1);box-shadow:0 0 8px rgba(124,58,237,0.04)}50%{transform:scale(1.04);box-shadow:0 0 40px rgba(124,58,237,0.2),0 0 80px rgba(124,58,237,0.08)}100%{transform:scale(1);box-shadow:0 0 8px rgba(124,58,237,0.04)}}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:rgba(255,255,255,0.03);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid var(--border);padding:12px 24px;color:var(--fg2);cursor:pointer;font-size:13px;font-weight:400;text-decoration:none;transition:all 0.25s var(--ease);font-family:var(--sans);border-radius:var(--radius)}
+.btn:hover{background:rgba(124,58,237,0.12);border-color:rgba(124,58,237,0.3);color:var(--fg);box-shadow:var(--glow)}
+.btn.accent{background:linear-gradient(135deg,rgba(124,58,237,0.35),rgba(139,92,246,0.2));border:1px solid rgba(124,58,237,0.35);color:#fff}
+.btn.accent:hover{background:linear-gradient(135deg,rgba(124,58,237,0.45),rgba(139,92,246,0.3));border-color:rgba(124,58,237,0.6);transform:translateY(-2px);box-shadow:var(--glow-intense)}
+
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;max-width:800px;margin:0 auto}
+.kpi-card{padding:24px 16px;text-align:center}
+.kpi-icon{margin-bottom:8px;display:block;opacity:0.5;height:24px}
+.kpi-icon svg{width:24px;height:24px;stroke-width:1.2}
+.kpi-value{font-family:var(--mono);font-size:30px;color:var(--accent);margin-bottom:4px;font-weight:400}
+.kpi-label{font-size:11px;color:var(--fg2);text-transform:uppercase;letter-spacing:0.1em;font-weight:300}
+
+.tl{position:relative;max-width:640px;margin:0 auto;padding:20px 0}
+.tl-line{position:absolute;left:50%;top:0;bottom:0;width:1px;background:var(--border);transform:translateX(-50%)}
+.tl-fill{width:100%;height:0;background:var(--accent);border-radius:2px;transition:height 0.1s linear}
+.tl-item{display:flex;align-items:flex-start;margin-bottom:28px;position:relative}
+.tl-item:nth-child(odd){flex-direction:row-reverse}
+.tl-dot{position:absolute;left:50%;top:8px;width:8px;height:8px;border-radius:50%;background:var(--accent);transform:translateX(-50%);z-index:2;border:2px solid var(--bg)}
+.tl-card{width:calc(50% - 32px);background:var(--card);border:1px solid var(--border);padding:20px;transition:all 0.3s ease}
+.tl-card:hover{border-color:rgba(124,58,237,0.2);background:var(--card-hover)}
+.tl-ano{font-family:var(--mono);font-size:11px;color:var(--accent);margin-bottom:4px;letter-spacing:0.05em}
+.tl-desc{font-size:13px;color:var(--fg2);font-weight:300;line-height:1.7}
+
+.chart-wrap{position:relative;height:200px;width:100%}
+.chart-wrap.tall{height:240px}
+
+.scorecard{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;max-width:600px;margin:0 auto 20px}
+.scorecard-item{background:var(--card);border:1px solid var(--border);padding:16px 12px;text-align:center;transition:all 0.3s ease}
+.scorecard-item:hover{border-color:rgba(124,58,237,0.18);background:var(--card-hover)}
+.scorecard-icon{display:block;margin-bottom:6px;opacity:0.6;height:16px}
+.scorecard-icon svg{width:16px;height:16px;stroke-width:1.5}
+.scorecard-num{display:block;font-family:var(--mono);font-size:22px;color:var(--fg);margin-bottom:2px;font-weight:400}
+.scorecard-label{display:block;font-size:9px;color:var(--fg2);text-transform:uppercase;letter-spacing:0.08em;font-weight:300}
+
+.confianca-bar{display:flex;align-items:center;gap:16px;padding:16px 24px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:28px;flex-wrap:wrap}
+.confianca-label{font-family:var(--mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--fg3)}
+.confianca-track{flex:1;min-width:120px;height:4px;background:var(--border);border-radius:4px;overflow:hidden}
+.confianca-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--accent),rgba(139,92,246,0.5));transition:width 1.5s var(--ease)}
+.confianca-num{font-family:var(--mono);font-size:16px;font-weight:400;min-width:40px;text-align:right;color:var(--fg)}
+.confianca-msg{font-size:12px;width:100%;color:var(--fg2);font-weight:300}
+
+.radar-sliders{display:flex;flex-direction:column;gap:8px}
+.radar-slider-row{display:flex;align-items:center;gap:12px}
+.radar-slider-row .rs-label{font-size:10px;width:110px;color:var(--fg2);text-transform:uppercase;letter-spacing:0.08em;flex-shrink:0}
+.radar-slider-row .rs-track{flex:1;height:3px;background:var(--border);border-radius:3px;position:relative;cursor:pointer}
+.radar-slider-row .rs-fill{height:100%;border-radius:3px;background:var(--accent);width:50%;transition:width 0.15s ease}
+.radar-slider-row .rs-val{font-family:var(--mono);font-size:12px;width:28px;text-align:right;color:var(--fg)}
+.radar-slider-row input[type=range]{position:absolute;inset:0;width:100%;opacity:0;cursor:pointer}
+
+.swot-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:20px}
+.swot-card{padding:20px}
+.swot-card .sw-head{font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.swot-card ul{list-style:none}
+.swot-card ul li{font-size:13px;color:var(--fg2);font-weight:300;padding:5px 0;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:6px}
+.swot-card ul li:last-child{border-bottom:none}
+.swot-card.sf .sw-head{color:var(--green)}
+.swot-card.sw .sw-head{color:var(--rose)}
+.swot-card.so .sw-head{color:var(--accent)}
+.swot-card.st .sw-head{color:var(--amber)}
+
+#map{height:300px;border-radius:var(--radius);overflow:hidden;border:1px solid var(--border);margin-bottom:12px}
+.map-legend{display:flex;gap:12px;justify-content:center;font-size:10px;font-family:var(--mono);color:var(--fg3);margin-bottom:12px;flex-wrap:wrap}
+.map-legend span{display:flex;align-items:center;gap:4px}
+.map-legend .ml-dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+.map-btns{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:8px}
+.map-btn{font-family:var(--mono);font-size:9px;letter-spacing:0.1em;padding:8px 16px;border:1px solid var(--border);background:var(--card);color:var(--fg3);cursor:pointer;transition:all 0.3s ease;text-decoration:none;border-radius:var(--radius)}
+.map-btn:hover{border-color:rgba(124,58,237,0.2);color:var(--fg)}
+
+.roi-sliders{max-width:400px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+.roi-slider-row{display:flex;flex-direction:column;gap:4px}
+.roi-slider-row .rs-hdr{display:flex;justify-content:space-between;font-size:11px;color:var(--fg2);font-family:var(--mono)}
+.roi-slider-row .rs-track{height:3px;background:var(--border);border-radius:3px;position:relative;cursor:pointer}
+.roi-slider-row .rs-fill{height:100%;border-radius:3px;background:var(--accent);transition:width 0.15s ease}
+.roi-slider-row input[type=range]{position:absolute;inset:0;width:100%;opacity:0;cursor:pointer}
+.roi-result{text-align:center;padding:20px;margin-top:10px}
+.roi-result .rr-num{font-family:var(--mono);font-size:36px;color:var(--accent);font-weight:300}
+.roi-result .rr-label{font-size:12px;color:var(--fg2);margin-top:2px}
+
+.footer{text-align:center;padding:36px 24px;font-size:12px;color:var(--fg3);font-family:var(--mono);border-top:1px solid var(--border);position:relative;z-index:2}
+.footer .lab{color:var(--accent)}
+.footer .note{font-size:11px;margin-top:4px;color:var(--fg3)}
+
+/* === MODO ÓCULOS (acessibilidade) === */
+.oculos-btn{background:none;border:none;cursor:pointer;line-height:1;padding:4px 6px;transition:transform .2s;flex-shrink:0;color:var(--fg3);margin-left:2px;position:relative;display:inline-flex;align-items:center;justify-content:center}
+.oculos-btn:hover{transform:scale(1.15)}
+[data-oculos="active"] .oculos-btn::after{content:'';position:absolute;bottom:-2px;left:50%;transform:translateX(-50%);width:4px;height:4px;border-radius:50%;background:var(--accent)}
+
+[data-oculos="active"] body{font-size:20px;line-height:1.7}
+[data-oculos="active"] .hero{padding:120px 24px 48px}
+[data-oculos="active"] .hero-title{font-size:clamp(40px,7.5vw,58px)!important}
+[data-oculos="active"] .hero-sub{font-size:20px!important}
+[data-oculos="active"] .hero-badge{font-size:15px!important}
+[data-oculos="active"] .section-title{font-size:clamp(34px,5.5vw,50px)!important}
+[data-oculos="active"] .section-desc{font-size:19px!important}
+[data-oculos="active"] .section-label{font-size:13px}
+[data-oculos="active"] .card{font-size:19px}
+[data-oculos="active"] .card p{font-size:19px!important}
+[data-oculos="active"] p{font-size:19px!important}
+[data-oculos="active"] .kpi-value{font-size:38px}
+[data-oculos="active"] .kpi-label{font-size:14px}
+[data-oculos="active"] .btn{font-size:16px}
+[data-oculos="active"] .nav a{font-size:11px}
+[data-oculos="active"] .roi-slider-row .rs-hdr{font-size:14px}
+[data-oculos="active"] .roi-result .rr-num{font-size:46px}
+[data-oculos="active"] .roi-result .rr-label{font-size:14px}
+[data-oculos="active"] .scorecard-num{font-size:28px}
+[data-oculos="active"] .scorecard-label{font-size:12px}
+[data-oculos="active"] .sw-head{font-size:13px}
+[data-oculos="active"] .swot-card ul li{font-size:15px!important}
+[data-oculos="active"] .tl-ano{font-size:13px}
+[data-oculos="active"] .tl-desc{font-size:15px}
+[data-oculos="active"] .confianca-label{font-size:12px}
+[data-oculos="active"] .confianca-msg{font-size:14px}
+[data-oculos="active"] .confianca-num{font-size:18px}
+[data-oculos="active"] .footer{font-size:14px}
+[data-oculos="active"] .footer .note{font-size:13px}
+[data-oculos="active"] .hero-trust{font-size:14px!important}
+[data-oculos="active"] .hero-trust span{font-size:14px!important}
+
+@media(max-width:768px){
+  .grid-2,.grid-4,.swot-grid{grid-template-columns:1fr}
+  .grid-3{grid-template-columns:1fr 1fr}
+  .scorecard{grid-template-columns:repeat(2,1fr)}
+  .kpi-grid{grid-template-columns:repeat(2,1fr)}
+  .tl-card{width:calc(50% - 20px)}
+  .section{padding:48px 16px}
+  .nav{padding:0 12px}
+  .nav a{padding:3px 8px;font-size:8px;letter-spacing:0.06em}
+  .nav .brand{margin-right:8px;gap:6px}
+  .nav .badge-demo{font-size:7px;padding:3px 6px}
+  .theme-btn,.oculos-btn{font-size:13px;padding:0 3px}
+  .oculos-btn svg{width:15px;height:15px}
+}
+@media(max-width:480px){
+  .grid-3,.kpi-grid{grid-template-columns:1fr}
+  .tl-item{flex-direction:column!important;padding-left:20px}
+  .tl-item .tl-card{width:100%}
+  .tl-dot{left:0}
+  .section{padding:36px 12px}
+  .hero{padding:80px 12px 32px}
+  .hero-title{font-size:26px}
+  .hero-sub{font-size:14px}
+  .nav{padding:0 8px;gap:2px}
+  .nav a{padding:3px 6px;font-size:9px;letter-spacing:0.05em}
+  .nav .badge-demo{font-size:8px;padding:2px 5px}
+  .theme-btn,.oculos-btn{font-size:11px;padding:0 2px}
+  .oculos-btn svg{width:13px;height:13px}
+  .nav .brand .label{font-size:11px}
+  .nav .brand .cube{width:22px;height:22px}
+  .nav .brand .cube .cg span{width:5px;height:5px}
+}
+</style>
+</head>
+<body>
+
+<div class="grid-bg"></div>
+<div class="bg-aura">
+  <div class="orb"></div>
+  <div class="orb"></div>
+  <div class="orb"></div>
+  <div class="orb"></div>
+</div>
+<div class="bg-rays">
+  <div class="ray"></div><div class="ray"></div><div class="ray"></div><div class="ray"></div><div class="ray"></div>
+  <div class="ray"></div><div class="ray"></div><div class="ray"></div><div class="ray"></div><div class="ray"></div>
+</div>
+<div class="bg-crystals">
+  <div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div>
+  <div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div>
+</div>
+
+<nav class="nav">
+  <span class="brand">
+    <span class="cube"><span class="cg"><span></span><span></span><span></span><span></span></span></span>
+    <span class="label">BlackBox</span><span class="dot">.</span>
+  </span>
+  <a href="#kpis">KPIs</a>
+  <a href="#benchmarks">Benchmarks</a>
+  <a href="#concorrencia">Concorrência</a>
+  <a href="#timeline">Timeline</a>
+  <a href="#charts">Charts</a>
+  <a href="#diagnostico">Diagnóstico</a>
+  <a href="#plano">Plano</a>
+  <a href="#roi">ROI</a>
+  <span class="badge-demo">Demonstrativo</span>
+  <button class="theme-btn" onclick="toggleTheme()" id="themeToggle" aria-label="Tema">🌙</button>
+  <button class="oculos-btn" onclick="toggleOculos()" id="oculosToggle" aria-label="Modo leitura"><i data-lucide="eye" style="width:18px;height:18px;stroke-width:1.5"></i></button>
+</nav>
+<div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+
+<!-- HERO -->
+<section class="hero" id="hero">
+  <div class="hero-bg"><div class="g"></div></div>
+  <div class="hero-content">
+    <div class="bb-logo-wrap">
+      <div class="bb-cube"><div class="bb-grid"><span></span><span></span><span></span><span></span></div></div>
+    </div>
+    <div class="hero-badge"><span class="tag">⟡</span> BlackBox Agente v1.0</div>
+    <h1 class="hero-title">O diagnóstico que <span class="hl">revela seu mercado</span></h1>
+    <p class="hero-sub">17 módulos de inteligência. Scanner automático em 15+ fontes. Charts, radar interativo, SWOT, ROI, mapa de calor, análise de sentimento e plano de ação em 3 fases — tudo num HTML entregue em 48h.</p>
+    <div class="hero-trust">
+      <span><span class="check">✓</span> Dados reais do seu negócio</span>
+      <span><span class="check">✓</span> Entrega 48h</span>
+      <span><span class="check">✓</span> Validação inclusa</span>
+      <span><span class="check">✓</span> Plano de ação com custos</span>
+    </div>
+  </div>
+</section>
+
+<!-- KPIs -->
+<section class="section" id="kpis">
+  <div class="section-inner">
+    <div class="section-label">⟡ Métricas Reais</div>
+    <h2 class="section-title">KPIs do seu negócio</h2>
+    <p class="section-desc">O scanner extrai de 15+ fontes públicas as métricas mais relevantes do seu segmento — faturamento estimado, ticket médio, reputação online, crescimento, engajamento digital. Cada KPI com badge de confiança (verificado, estimado ou inferido).</p>
+    <div class="kpi-grid reveal">
+      <div class="card kpi-card"><span class="kpi-icon"><i data-lucide="trending-up" stroke-width="1.2"></i></span><div class="kpi-value"><span class="counter" data-target="28">0</span>k</div><div class="kpi-label">Faturamento mensal · 3 fontes ✓</div></div>
+      <div class="card kpi-card"><span class="kpi-icon"><i data-lucide="wallet" stroke-width="1.2"></i></span><div class="kpi-value">R$<span class="counter" data-target="62">0</span></div><div class="kpi-label">Ticket médio · 2 fontes ✓</div></div>
+      <div class="card kpi-card"><span class="kpi-icon"><i data-lucide="activity" stroke-width="1.2"></i></span><div class="kpi-value">+<span class="counter" data-target="18">0</span>%</div><div class="kpi-label">Crescimento anual · estimado</div></div>
+      <div class="card kpi-card"><span class="kpi-icon"><i data-lucide="star" stroke-width="1.2"></i></span><div class="kpi-value"><span class="counter" data-target="42">0</span>★</div><div class="kpi-label">Reputação online · 187 avaliações</div></div>
+    </div>
+    <div class="grid-4 reveal" style="margin-top:6px;gap:8px;font-size:12px;text-align:center">
+      <div class="card" style="padding:12px"><span class="kpi-icon" style="margin:0;height:18px"><i data-lucide="users" stroke-width="1.2" style="width:18px;height:18px"></i></span><div style="font-family:var(--mono);font-size:18px;color:var(--fg);margin:2px 0"><span class="counter" data-target="470">0</span></div><div style="font-size:10px;color:var(--fg2)">Clientes ativos/mês</div></div>
+      <div class="card" style="padding:12px"><span class="kpi-icon" style="margin:0;height:18px"><i data-lucide="refresh-ccw" stroke-width="1.2" style="width:18px;height:18px"></i></span><div style="font-family:var(--mono);font-size:18px;color:var(--green);margin:2px 0"><span class="counter" data-target="62">0</span>%</div><div style="font-size:10px;color:var(--fg2)">Taxa de recompra</div></div>
+      <div class="card" style="padding:12px"><span class="kpi-icon" style="margin:0;height:18px"><i data-lucide="instagram" stroke-width="1.2" style="width:18px;height:18px"></i></span><div style="font-family:var(--mono);font-size:18px;color:var(--fg);margin:2px 0"><span class="counter" data-target="12">0</span>k</div><div style="font-size:10px;color:var(--fg2)">Seguidores Instagram</div></div>
+      <div class="card" style="padding:12px"><span class="kpi-icon" style="margin:0;height:18px"><i data-lucide="megaphone" stroke-width="1.2" style="width:18px;height:18px"></i></span><div style="font-family:var(--mono);font-size:18px;color:var(--fg);margin:2px 0">R$<span class="counter" data-target="480">0</span></div><div style="font-size:10px;color:var(--fg2)">Investimento em ads/mês</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- BENCHMARKS -->
+<section class="section" id="benchmarks">
+  <div class="section-inner">
+    <div class="section-label">⟡ Comparativo de Mercado</div>
+    <h2 class="section-title">Benchmarks vs média do setor</h2>
+    <p class="section-desc">O BlackBox compara seus indicadores com a média do segmento, concorrentes de referência e dados setoriais. Cada card mostra onde você ganha e onde perde — com dados reais extraídos da sua região.</p>
+    <div class="grid-3 reveal">
+      <div class="card" style="padding:20px;text-align:center">
+        <div style="font-family:var(--mono);font-size:24px;color:var(--green);font-weight:300">+42%</div>
+        <div style="font-size:13px;color:var(--fg);margin:4px 0">Tempo de mercado</div>
+        <div style="font-size:11px;color:var(--fg2);font-weight:300">vs média local · vantagem</div>
+      </div>
+      <div class="card" style="padding:20px;text-align:center">
+        <div style="font-family:var(--mono);font-size:24px;color:var(--fg);font-weight:300">-60%</div>
+        <div style="font-size:13px;color:var(--fg);margin:4px 0">Presença digital</div>
+        <div style="font-size:11px;color:var(--fg2);font-weight:300">vs média local · desvantagem</div>
+      </div>
+      <div class="card" style="padding:20px;text-align:center">
+        <div style="font-family:var(--mono);font-size:24px;color:var(--amber);font-weight:300">+18%</div>
+        <div style="font-size:13px;color:var(--fg);margin:4px 0">Mix de serviços</div>
+        <div style="font-size:11px;color:var(--fg2);font-weight:300">vs média local · vantagem</div>
+      </div>
+    </div>
+    <div class="grid-3 reveal" style="margin-top:6px">
+      <div class="card" style="padding:16px">
+        <div style="font-size:11px;color:var(--fg2);font-weight:300">Média do setor na sua região</div>
+        <div style="font-family:var(--mono);font-size:15px;color:var(--fg);margin:4px 0">4.3★ · 3.2k seguidores</div>
+        <div style="font-size:10px;color:var(--fg3)">benchmark regional</div>
+      </div>
+      <div class="card" style="padding:16px">
+        <div style="font-size:11px;color:var(--fg2);font-weight:300">Ticket médio do mercado</div>
+        <div style="font-family:var(--mono);font-size:15px;color:var(--fg);margin:4px 0">R$ 58 — R$ 72</div>
+        <div style="font-size:10px;color:var(--fg3)">faixa praticada na região</div>
+      </div>
+      <div class="card" style="padding:16px">
+        <div style="font-size:11px;color:var(--fg2);font-weight:300">Benchmark de marketing digital</div>
+        <div style="font-family:var(--mono);font-size:15px;color:var(--accent);margin:4px 0">+35% investimento</div>
+        <div style="font-size:10px;color:var(--fg3)">concorrentes diretos investem mais</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CONCORRÊNCIA -->
+<section class="section" id="concorrencia">
+  <div class="section-inner">
+    <div class="section-label">⟡ Mapeamento em 3 Camadas</div>
+    <h2 class="section-title">Concorrência direta, indireta e aspirantes</h2>
+    <p class="section-desc">O scanner vasculha Google Maps, Instagram, Facebook, Booksy e diretórios locais em 3 camadas geográficas: mesmo bairro, bairros vizinhos e centro. Cada concorrente com nota, preço, distância e tipo classificado.</p>
+    <div style="overflow-x:auto;margin-bottom:12px">
+      <table style="width:100%;border-collapse:collapse;font-size:12px;font-family:var(--mono);min-width:480px">
+        <thead><tr style="border-bottom:1px solid var(--border)"><th style="padding:10px 12px;text-align:left;color:var(--fg2);font-weight:400">Concorrente</th><th style="padding:10px 12px;text-align:left;color:var(--fg2);font-weight:400">Bairro</th><th style="padding:10px 12px;text-align:center;color:var(--fg2);font-weight:400">Nota</th><th style="padding:10px 12px;text-align:center;color:var(--fg2);font-weight:400">Preço</th><th style="padding:10px 12px;text-align:center;color:var(--fg2);font-weight:400">Tipo</th><th style="padding:10px 12px;text-align:center;color:var(--fg2);font-weight:400">Camada</th></tr></thead>
+        <tbody>
+          <tr style="border-bottom:1px solid var(--border)"><td style="padding:8px 12px;color:var(--fg)">Concorrente A</td><td style="padding:8px 12px;color:var(--fg2)">Centro</td><td style="padding:8px 12px;text-align:center;color:var(--amber)">4.7★</td><td style="padding:8px 12px;text-align:center;color:var(--fg2)">R$ 55</td><td style="padding:8px 12px;text-align:center;color:var(--fg2)">Premium</td><td style="padding:8px 12px;text-align:center;color:var(--accent)">Direta</td></tr>
+          <tr style="border-bottom:1px solid var(--border)"><td style="padding:8px 12px;color:var(--fg)">Concorrente B</td><td style="padding:8px 12px;color:var(--fg2)">Centro</td><td style="padding:8px 12px;text-align:center;color:var(--amber)">4.5★</td><td style="padding:8px 12px;text-align:center;color:var(--fg2)">R$ 48</td><td style="padding:8px 12px;text-align:center;color:var(--fg2)">Tradicional</td><td style="padding:8px 12px;text-align:center;color:var(--accent)">Direta</td></tr>
+          <tr style="border-bottom:1px solid var(--border)"><td style="padding:8px 12px;color:var(--fg)">Concorrente C</td><td style="padding:8px 12px;color:var(--fg2)">Bairro A</td><td style="padding:8px 12px;text-align:center;color:var(--amber)">4.8★</td><td style="padding:8px 12px;text-align:center;color:var(--fg2)">R$ 70</td><td style="padding:8px 12px;text-align:center;color:var(--fg2)">Luxo</td><td style="padding:8px 12px;text-align:center;color:var(--fg3)">Indireta</td></tr>
+          <tr style="border-bottom:1px solid var(--border)"><td style="padding:8px 12px;color:var(--fg)">Concorrente D</td><td style="padding:8px 12px;color:var(--fg2)">Bairro B</td><td style="padding:8px 12px;text-align:center;color:var(--amber)">4.3★</td><td style="padding:8px 12px;text-align:center;color:var(--fg2)">R$ 50</td><td style="padding:8px 12px;text-align:center;color:var(--fg2)">Popular</td><td style="padding:8px 12px;text-align:center;color:var(--fg3)">Indireta</td></tr>
+          <tr style="border-bottom:1px solid var(--border)"><td style="padding:8px 12px;color:var(--fg)">Novo Entrante A</td><td style="padding:8px 12px;color:var(--fg2)">Centro</td><td style="padding:8px 12px;text-align:center;color:var(--fg3)">—</td><td style="padding:8px 12px;text-align:center;color:var(--fg2)">R$ 45</td><td style="padding:8px 12px;text-align:center;color:var(--fg2)">Moderno</td><td style="padding:8px 12px;text-align:center;color:var(--amber)">Aspirante</td></tr>
+          <tr><td style="padding:8px 12px;color:var(--fg)">Franquia B</td><td style="padding:8px 12px;color:var(--fg2)">Próx. 60 dias</td><td style="padding:8px 12px;text-align:center;color:var(--fg3)">—</td><td style="padding:8px 12px;text-align:center;color:var(--fg2)">R$ 65</td><td style="padding:8px 12px;text-align:center;color:var(--fg2)">Premium</td><td style="padding:8px 12px;text-align:center;color:var(--rose)">Risco</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="grid-3 reveal" style="margin-top:8px">
+      <div class="card" style="padding:16px">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px"><span style="width:6px;height:6px;border-radius:50%;background:var(--rose)"></span><span style="font-size:12px;color:var(--fg);font-weight:400">Principal ameaça</span></div>
+        <div style="font-size:12px;color:var(--fg2);font-weight:300">Concorrente A está a 800m com 4.7★ e agendamento digital ativo. Potencial de migração de clientes: alto.</div>
+      </div>
+      <div class="card" style="padding:16px">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px"><span style="width:6px;height:6px;border-radius:50%;background:var(--green)"></span><span style="font-size:12px;color:var(--fg);font-weight:400">Vantagem sua</span></div>
+        <div style="font-size:12px;color:var(--fg2);font-weight:300">Você tem +42% de tempo de mercado. Experiência e clientes fiéis são seu ativo mais forte.</div>
+      </div>
+      <div class="card" style="padding:16px">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px"><span style="width:6px;height:6px;border-radius:50%;background:var(--amber)"></span><span style="font-size:12px;color:var(--fg);font-weight:400">Share de voz digital</span></div>
+        <div style="font-size:12px;color:var(--fg2);font-weight:300">12% vs 72% dos concorrentes diretos. Oportunidade de crescimento via presença digital.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TIMELINE -->
+<section class="section" id="timeline">
+  <div class="section-inner">
+    <div class="section-label">⟡ Linha do Tempo</div>
+    <h2 class="section-title">A história do negócio em marcos</h2>
+    <p class="section-desc">O BlackBox reconstrói a linha do tempo do seu negócio a partir de fontes públicas — fundação, crises, crescimentos, momento atual. Base para entender onde você está e para onde ir.</p>
+    <div class="tl reveal">
+      <div class="tl-line"><div class="tl-fill" id="tlFill"></div></div>
+      <div class="tl-item"><div class="tl-dot"></div><div class="tl-card"><div class="tl-ano">⟡ Fundação</div><div class="tl-desc">Abertura do negócio com investimento inicial. Primeiros clientes, formação da equipe, estrutura inicial montada.</div></div></div>
+      <div class="tl-item"><div class="tl-dot"></div><div class="tl-card"><div class="tl-ano">⟡ Crise e adaptação</div><div class="tl-desc">Desafios de mercado, saída de sócio, reestruturação. Período crítico que definiu a resiliência do negócio.</div></div></div>
+      <div class="tl-item"><div class="tl-dot"></div><div class="tl-card"><div class="tl-ano">⟡ Retomada</div><div class="tl-desc">Migração para ponto maior, contratações, aumento de capacidade. Faturamento sobe 40% no trimestre.</div></div></div>
+      <div class="tl-item"><div class="tl-dot"></div><div class="tl-card"><div class="tl-ano">⟡ Estagnação</div><div class="tl-desc">Concorrência avança digitalmente. Crescimento para. Ticket médio estagnado. Sinais de alerta aparecem.</div></div></div>
+      <div class="tl-item"><div class="tl-dot"></div><div class="tl-card"><div class="tl-ano">⟡ Agora · BlackBox</div><div class="tl-desc">Diagnóstico ativado. 17 módulos escaneados. Dados reais coletados. Plano de ação definido em 3 fases.</div></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- CHARTS -->
+<section class="section" id="charts">
+  <div class="section-inner">
+    <div class="section-label">⟡ Visualização de Dados</div>
+    <h2 class="section-title">Charts interativos</h2>
+    <p class="section-desc">Gráficos dinâmicos gerados a partir dos dados coletados: radar de competências, evolução financeira, comparativo de concorrentes e distribuição de receita. Interaja com cada um.</p>
+    <div class="grid-2 reveal">
+      <div class="card"><div style="font-size:12px;font-weight:400;color:var(--fg3);margin-bottom:10px;letter-spacing:0.03em"><i data-lucide="radar" style="width:12px;height:12px;vertical-align:middle;margin-right:4px"></i>RADAR · 6 eixos de competência</div><div class="chart-wrap tall"><canvas id="radarChart"></canvas></div><div style="font-size:10px;color:var(--fg3);margin-top:8px;text-align:center;font-family:var(--mono)">Roxo = seu negócio · Tracejado = média do setor</div></div>
+      <div class="card"><div style="font-size:12px;font-weight:400;color:var(--fg3);margin-bottom:10px;letter-spacing:0.03em"><i data-lucide="line-chart" style="width:12px;height:12px;vertical-align:middle;margin-right:4px"></i>EVOLUÇÃO · Faturamento ao longo dos anos</div><div class="chart-wrap tall"><canvas id="lineChart"></canvas></div><div style="font-size:10px;color:var(--fg3);margin-top:8px;text-align:center;font-family:var(--mono)">Passe o mouse para valores exatos</div></div>
+      <div class="card"><div style="font-size:12px;font-weight:400;color:var(--fg3);margin-bottom:10px;letter-spacing:0.03em"><i data-lucide="bar-chart-3" style="width:12px;height:12px;vertical-align:middle;margin-right:4px"></i>COMPARATIVO · Ticket médio por concorrente</div><div class="chart-wrap tall"><canvas id="barChart"></canvas></div><div style="font-size:10px;color:var(--fg3);margin-top:8px;text-align:center;font-family:var(--mono)">Roxo = você · Verde = concorrentes</div></div>
+      <div class="card"><div style="font-size:12px;font-weight:400;color:var(--fg3);margin-bottom:10px;letter-spacing:0.03em"><i data-lucide="pie-chart" style="width:12px;height:12px;vertical-align:middle;margin-right:4px"></i>COMPOSIÇÃO · Distribuição da receita</div><div class="chart-wrap tall"><canvas id="doughnutChart"></canvas></div><div style="font-size:10px;color:var(--fg3);margin-top:8px;text-align:center;font-family:var(--mono)">Clique na legenda para isolar categorias</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- MAPA DE CALOR + MAPA -->
+<section class="section" id="calor">
+  <div class="section-inner">
+    <div class="section-label">⟡ Território e Localização</div>
+    <h2 class="section-title">Densidade competitiva + mapa interativo</h2>
+    <p class="section-desc">O BlackBox mapeia a concentração de concorrentes por bairro/região e exibe num mapa interativo com Leaflet. Veja onde o mercado está saturado e onde há espaço para crescer.</p>
+    <div class="grid-2 reveal">
+      <div class="card" style="padding:20px;text-align:center">
+        <div style="font-size:11px;color:var(--fg2);margin-bottom:12px;letter-spacing:0.08em">DENSIDADE POR BAIRRO</div>
+        <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px;max-width:340px;margin:0 auto">
+          <div style="aspect-ratio:1;border-radius:3px;background:var(--border);display:flex;align-items:center;justify-content:center;font-size:8px;color:var(--fg3);font-family:var(--mono)">-</div>
+          <div style="aspect-ratio:1;border-radius:3px;background:var(--border);display:flex;align-items:center;justify-content:center;font-size:8px;color:var(--fg3);font-family:var(--mono)">-</div>
+          <div style="aspect-ratio:1;border-radius:3px;background:var(--fg3);display:flex;align-items:center;justify-content:center;font-size:8px;color:var(--fg2);font-family:var(--mono)">1</div>
+          <div style="aspect-ratio:1;border-radius:3px;background:var(--fg3);display:flex;align-items:center;justify-content:center;font-size:8px;color:var(--fg2);font-family:var(--mono)">2</div>
+          <div style="aspect-ratio:1;border-radius:3px;background:rgba(124,58,237,0.15);display:flex;align-items:center;justify-content:center;font-size:8px;color:var(--accent);font-family:var(--mono)">3</div>
+          <div style="aspect-ratio:1;border-radius:3px;background:rgba(124,58,237,0.25);display:flex;align-items:center;justify-content:center;font-size:8px;color:var(--accent);font-family:var(--mono)">4</div>
+          <div style="aspect-ratio:1;border-radius:3px;background:var(--border);display:flex;align-items:center;justify-content:center;font-size:8px;color:var(--fg3);font-family:var(--mono)">-</div>
+          <div style="aspect-ratio:1;border-radius:3px;background:var(--border);display:flex;align-items:center;justify-content:center;font-size:8px;color:var(--fg3);font-family:var(--mono)">-</div>
+          <div style="aspect-ratio:1;border-radius:3px;background:var(--fg3);display:flex;align-items:center;justify-content:center;font-size:8px;color:var(--fg2);font-family:var(--mono)">2</div>
+          <div style="aspect-ratio:1;border-radius:3px;background:rgba(124,58,237,0.2);display:flex;align-items:center;justify-content:center;font-size:8px;color:var(--accent);font-family:var(--mono)">5</div>
+          <div style="aspect-ratio:1;border-radius:3px;background:rgba(124,58,237,0.3);display:flex;align-items:center;justify-content:center;font-size:8px;color:#fff;font-weight:600;font-family:var(--mono)">7</div>
+          <div style="aspect-ratio:1;border-radius:3px;background:rgba(124,58,237,0.15);display:flex;align-items:center;justify-content:center;font-size:8px;color:var(--accent);font-family:var(--mono)">3</div>
+          <div style="aspect-ratio:1;border-radius:3px;background:var(--fg3);display:flex;align-items:center;justify-content:center;font-size:8px;color:var(--fg2);font-family:var(--mono)">1</div>
+          <div style="aspect-ratio:1;border-radius:3px;background:var(--border);display:flex;align-items:center;justify-content:center;font-size:8px;color:var(--fg3);font-family:var(--mono)">-</div>
+        </div>
+        <div style="display:flex;justify-content:center;gap:10px;margin-top:8px;font-size:9px;color:var(--fg2);font-family:var(--mono)">
+          <span style="color:var(--fg3)">■ 0</span><span>■ 1-2</span><span style="color:var(--accent)">■ 3-5</span><span style="color:#fff">■ 6+</span>
+        </div>
+        <div style="font-size:11px;color:var(--fg2);margin-top:10px;font-weight:300">Saturação média-alta no centro · Oportunidade em bairros adjacentes</div>
+      </div>
+      <div class="card" style="padding:16px">
+        <div style="font-size:11px;color:var(--fg2);margin-bottom:10px;letter-spacing:0.08em">REGIÃO DE ATUAÇÃO</div>
+        <div id="map"></div>
+        <div class="map-btns">
+          <a class="map-btn" href="https://www.google.com/maps" target="_blank">Abrir no Google Maps</a>
+          <a class="map-btn" href="https://www.waze.com" target="_blank">Abrir no Waze</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEEDBACKS -->
+<section class="section" id="feedbacks">
+  <div class="section-inner">
+    <div class="section-label">⟡ Voz do Cliente</div>
+    <h2 class="section-title">Feedbacks reais dos clientes</h2>
+    <p class="section-desc">O scanner coleta avaliações autênticas de múltiplas plataformas — Google, Instagram, Facebook, Booksy. Cada feedback com fonte, estrelas e data. Sem filtro, sem edição.</p>
+    <div class="grid-2 reveal">
+      <div class="card" style="padding:20px;background:rgba(245,158,11,0.02)">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><span style="font-size:11px;color:var(--amber)">★★★★★</span><span style="font-size:10px;color:var(--fg3);font-family:var(--mono)"><i data-lucide="map-pin" style="width:10px;height:10px;vertical-align:middle"></i> Google · 2 sem.</span></div>
+        <div style="font-size:13px;color:var(--fg2);font-weight:300;line-height:1.7">"Atendimento excelente, melhor da região. Preço justo e ambiente agradável. Recomendo!"</div>
+      </div>
+      <div class="card" style="padding:20px;background:rgba(245,158,11,0.02)">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><span style="font-size:11px;color:var(--amber)">★★★★☆</span><span style="font-size:10px;color:var(--fg3);font-family:var(--mono)"><i data-lucide="facebook" style="width:10px;height:10px;vertical-align:middle"></i> Facebook · 1 mês</span></div>
+        <div style="font-size:13px;color:var(--fg2);font-weight:300;line-height:1.7">"Gostei do serviço mas a demora foi grande. Precisa de agendamento."</div>
+      </div>
+      <div class="card" style="padding:20px;background:rgba(245,158,11,0.02)">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><span style="font-size:11px;color:var(--amber)">★★★★★</span><span style="font-size:10px;color:var(--fg3);font-family:var(--mono)"><i data-lucide="map-pin" style="width:10px;height:10px;vertical-align:middle"></i> Google · 2 meses</span></div>
+        <div style="font-size:13px;color:var(--fg2);font-weight:300;line-height:1.7">"Evoluiu muito nos últimos meses. Nota 4. Volto sempre."</div>
+      </div>
+      <div class="card" style="padding:20px;background:rgba(245,158,11,0.02)">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><span style="font-size:11px;color:var(--amber)">★★★★☆</span><span style="font-size:10px;color:var(--fg3);font-family:var(--mono)"><i data-lucide="camera" style="width:10px;height:10px;vertical-align:middle"></i> Instagram · 3 meses</span></div>
+        <div style="font-size:13px;color:var(--fg2);font-weight:300;line-height:1.7">"Preço subiu um pouco mas a qualidade acompanhou. Justo."</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CURIOSIDADES -->
+<section class="section" id="curiosidades">
+  <div class="section-inner">
+    <div class="section-label">⟡ Insights Inesperados</div>
+    <h2 class="section-title">O que os dados revelaram</h2>
+    <p class="section-desc">Correlações e descobertas que o scanner encontrou ao cruzar dados de múltiplas fontes. Fatos que mudam a forma de enxergar o negócio.</p>
+    <div class="grid-3 reveal">
+      <div class="card" style="padding:18px"><div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><i data-lucide="clock" style="width:14px;height:14px;color:var(--accent);flex-shrink:0"></i><span style="font-size:12px;color:var(--fg);font-weight:400">Horário de pico crítico</span></div><div style="font-size:12px;color:var(--fg2);font-weight:300;line-height:1.7">72% das reclamações entre 17h-19h. Sobrecarga no horário nobre com falta de agendamento.</div></div>
+      <div class="card" style="padding:18px"><div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><i data-lucide="message-square" style="width:14px;height:14px;color:var(--accent);flex-shrink:0"></i><span style="font-size:12px;color:var(--fg);font-weight:400">Cliente silencioso</span></div><div style="font-size:12px;color:var(--fg2);font-weight:300;line-height:1.7">34% dos clientes fiéis nunca avaliaram. Potencial inexplorado de reputação positiva.</div></div>
+      <div class="card" style="padding:18px"><div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><i data-lucide="trending-down" style="width:14px;height:14px;color:var(--accent);flex-shrink:0"></i><span style="font-size:12px;color:var(--fg);font-weight:400">ROI de anúncios negativo</span></div><div style="font-size:12px;color:var(--fg2);font-weight:300;line-height:1.7">R$ 480/mês em Google Ads sem conversão medida. É dinheiro jogado fora.</div></div>
+      <div class="card" style="padding:18px"><div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><i data-lucide="search" style="width:14px;height:14px;color:var(--accent);flex-shrink:0"></i><span style="font-size:12px;color:var(--fg);font-weight:400">Demanda escondida</span></div><div style="font-size:12px;color:var(--fg2);font-weight:300;line-height:1.7">42 buscas/mês pelo serviço no bairro. Gente procurando o que você oferece — sem encontrar.</div></div>
+      <div class="card" style="padding:18px"><div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><i data-lucide="dollar-sign" style="width:14px;height:14px;color:var(--accent);flex-shrink:0"></i><span style="font-size:12px;color:var(--fg);font-weight:400">Ticket abaixo do potencial</span></div><div style="font-size:12px;color:var(--fg2);font-weight:300;line-height:1.7">Ticket médio R$ 62 vs R$ 72 do concorrente premium. Margem de crescimento de 16%.</div></div>
+      <div class="card" style="padding:18px"><div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><i data-lucide="smartphone" style="width:14px;height:14px;color:var(--accent);flex-shrink:0"></i><span style="font-size:12px;color:var(--fg);font-weight:400">Digital zero</span></div><div style="font-size:12px;color:var(--fg2);font-weight:300;line-height:1.7">Presença digital -60% vs média. Concorrentes têm site, agendamento e Instagram ativo.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- DIAGNÓSTICO -->
+<section class="section" id="diagnostico">
+  <div class="section-inner">
+    <div class="section-label">⟡ Análise Completa</div>
+    <h2 class="section-title">Diagnóstico BlackBox</h2>
+    <p class="section-desc">Nota geral, índice de confiança, radar interativo, SWOT, recomendações e estratégias — tudo baseado nos dados coletados e na correlação entre eles.</p>
+
+    <!-- Scorecard -->
+    <div class="scorecard reveal">
+      <div class="scorecard-item"><span class="scorecard-icon"><i data-lucide="target" stroke-width="1.5"></i></span><span class="scorecard-num"><span class="counter" data-target="67">0</span></span><span class="scorecard-label">Nota Geral</span></div>
+      <div class="scorecard-item"><span class="scorecard-icon"><i data-lucide="shield" stroke-width="1.5"></i></span><span class="scorecard-num"><span class="counter" data-target="72">0</span>%</span><span class="scorecard-label">Confiança</span></div>
+      <div class="scorecard-item"><span class="scorecard-icon"><i data-lucide="users" stroke-width="1.5"></i></span><span class="scorecard-num"><span class="counter" data-target="8">0</span></span><span class="scorecard-label">Concorrentes</span></div>
+      <div class="scorecard-item"><span class="scorecard-icon"><i data-lucide="message-circle" stroke-width="1.5"></i></span><span class="scorecard-num"><span class="counter" data-target="47">0</span></span><span class="scorecard-label">Feedbacks</span></div>
+    </div>
+
+    <!-- Índice de Confiança -->
+    <div class="confianca-bar reveal">
+      <div class="confianca-label">⟡ Índice de Confiança</div>
+      <div class="confianca-track"><div class="confianca-fill" style="width:72%"></div></div>
+      <div class="confianca-num">72%</div>
+      <div class="confianca-msg">Dados suficientes com algumas estimativas — Google Maps, Instagram e Facebook verificados. Ticket e métricas financeiras estimados.</div>
+    </div>
+
+    <!-- Radar + Sliders -->
+    <div class="grid-2 reveal">
+      <div class="card"><div style="font-size:11px;color:var(--fg2);margin-bottom:10px;letter-spacing:0.08em">RADAR DE COMPETÊNCIAS</div><div class="chart-wrap" style="height:220px"><canvas id="radarDiagChart"></canvas></div></div>
+      <div class="card">
+        <div style="font-size:11px;color:var(--fg2);margin-bottom:14px;letter-spacing:0.08em">AJUSTE OS EIXOS · Simulação interativa</div>
+        <div class="radar-sliders" id="radarSliders">
+          <div class="radar-slider-row"><span class="rs-label">Presença digital</span><div class="rs-track"><div class="rs-fill" style="width:28%"></div><input type="range" min="0" max="100" value="28"></div><span class="rs-val">28</span></div>
+          <div class="radar-slider-row"><span class="rs-label">Reputação</span><div class="rs-track"><div class="rs-fill" style="width:72%"></div><input type="range" min="0" max="100" value="72"></div><span class="rs-val">72</span></div>
+          <div class="radar-slider-row"><span class="rs-label">Precificação</span><div class="rs-track"><div class="rs-fill" style="width:58%"></div><input type="range" min="0" max="100" value="58"></div><span class="rs-val">58</span></div>
+          <div class="radar-slider-row"><span class="rs-label">Inovação</span><div class="rs-track"><div class="rs-fill" style="width:22%"></div><input type="range" min="0" max="100" value="22"></div><span class="rs-val">22</span></div>
+          <div class="radar-slider-row"><span class="rs-label">Atendimento</span><div class="rs-track"><div class="rs-fill" style="width:35%"></div><input type="range" min="0" max="100" value="35"></div><span class="rs-val">35</span></div>
+          <div class="radar-slider-row"><span class="rs-label">Marketing</span><div class="rs-track"><div class="rs-fill" style="width:18%"></div><input type="range" min="0" max="100" value="18"></div><span class="rs-val">18</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SWOT -->
+    <div class="swot-grid reveal">
+      <div class="card swot-card sf"><div class="sw-head"><i data-lucide="trending-up" style="width:12px;height:12px;color:var(--green)"></i> Forças</div><ul><li><span style="color:var(--green);font-size:10px">+</span> Experiência consolidada (+6 anos)</li><li><span style="color:var(--green);font-size:10px">+</span> Equipe treinada e estável</li><li><span style="color:var(--green);font-size:10px">+</span> Mix de serviços amplo</li><li><span style="color:var(--green);font-size:10px">+</span> Clientes fiéis (62% recompra)</li></ul></div>
+      <div class="card swot-card sw"><div class="sw-head"><i data-lucide="trending-down" style="width:12px;height:12px;color:var(--rose)"></i> Fraquezas</div><ul><li><span style="color:var(--rose);font-size:10px">−</span> Presença digital fraca</li><li><span style="color:var(--rose);font-size:10px">−</span> Sem agendamento online</li><li><span style="color:var(--rose);font-size:10px">−</span> Marketing digital zero</li><li><span style="color:var(--rose);font-size:10px">−</span> Não aceita cartão</li></ul></div>
+      <div class="card swot-card so"><div class="sw-head"><i data-lucide="lightbulb" style="width:12px;height:12px;color:var(--accent)"></i> Oportunidades</div><ul><li><span style="color:var(--accent);font-size:10px">✦</span> Bairro em crescimento (novos condomínios)</li><li><span style="color:var(--accent);font-size:10px">✦</span> Linha de produtos inexplorada</li><li><span style="color:var(--accent);font-size:10px">✦</span> Parcerias com eventos locais</li><li><span style="color:var(--accent);font-size:10px">✦</span> Marketing digital de baixo custo</li></ul></div>
+      <div class="card swot-card st"><div class="sw-head"><i data-lucide="alert-triangle" style="width:12px;height:12px;color:var(--amber)"></i> Ameaças</div><ul><li><span style="color:var(--amber);font-size:10px">⚠</span> Concorrente A com 4.7★ a 800m</li><li><span style="color:var(--amber);font-size:10px">⚠</span> Franquia abrindo em 60 dias</li><li><span style="color:var(--amber);font-size:10px">⚠</span> Clientes migrando para experiência digital</li><li><span style="color:var(--amber);font-size:10px">⚠</span> Agendamento online é padrão no mercado</li></ul></div>
+    </div>
+
+    <!-- Recomendações + Marketing -->
+    <div class="grid-2 reveal" style="margin-top:16px">
+      <div class="card" style="padding:20px">
+        <div style="font-size:11px;color:var(--fg2);margin-bottom:12px;letter-spacing:0.08em">RECOMENDAÇÕES PRIORITÁRIAS</div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div style="display:flex;gap:10px;align-items:flex-start"><span style="font-size:16px;line-height:1">1.</span><div><div style="font-size:13px;color:var(--fg)">Resgatar reputação</div><div style="font-size:12px;color:var(--fg2);font-weight:300">Responder avaliações, incentivar clientes fiéis a avaliar. Subir de 4.2 para 4.5★.</div></div></div>
+          <div style="display:flex;gap:10px;align-items:flex-start"><span style="font-size:16px;line-height:1">2.</span><div><div style="font-size:13px;color:var(--fg)">Agendamento digital</div><div style="font-size:12px;color:var(--fg2);font-weight:300">WhatsApp Business + widget. Reduz espera, aumenta satisfação em 40%.</div></div></div>
+          <div style="display:flex;gap:10px;align-items:flex-start"><span style="font-size:16px;line-height:1">3.</span><div><div style="font-size:13px;color:var(--fg)">Linha de produtos</div><div style="font-size:12px;color:var(--fg2);font-weight:300">Vender pomadas, shampoos, ceras. Margem 50-80%. +R$ 3k/mês estimado.</div></div></div>
+          <div style="display:flex;gap:10px;align-items:flex-start"><span style="font-size:16px;line-height:1">4.</span><div><div style="font-size:13px;color:var(--fg)">Otimizar precificação</div><div style="font-size:12px;color:var(--fg2);font-weight:300">Ticket médio 16% abaixo do topo. Ajuste gradual com base nos dados.</div></div></div>
+        </div>
+      </div>
+      <div class="card" style="padding:20px">
+        <div style="font-size:11px;color:var(--fg2);margin-bottom:12px;letter-spacing:0.08em">ESTRATÉGIAS DE MARKETING</div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div style="padding:10px 14px;background:var(--glass);border:1px solid var(--border);border-radius:4px"><div style="display:flex;align-items:center;gap:6px;margin-bottom:2px"><span style="font-size:10px;color:var(--green)">● ALTA</span><span style="font-size:12px;color:var(--fg)">Google Meu Negócio</span></div><div style="font-size:11px;color:var(--fg2);font-weight:300">Completar perfil, fotos, horários. Impacto direto em buscas locais.</div></div>
+          <div style="padding:10px 14px;background:var(--glass);border:1px solid var(--border);border-radius:4px"><div style="display:flex;align-items:center;gap:6px;margin-bottom:2px"><span style="font-size:10px;color:var(--accent)">● MÉDIA</span><span style="font-size:12px;color:var(--fg)">Instagram + Conteúdo Local</span></div><div style="font-size:11px;color:var(--fg2);font-weight:300">Mostrar serviços, bastidores, promoções. Engajar comunidade do bairro.</div></div>
+          <div style="padding:10px 14px;background:var(--glass);border:1px solid var(--border);border-radius:4px"><div style="display:flex;align-items:center;gap:6px;margin-bottom:2px"><span style="font-size:10px;color:var(--accent)">● MÉDIA</span><span style="font-size:12px;color:var(--fg)">Parcerias com Eventos</span></div><div style="font-size:11px;color:var(--fg2);font-weight:300">Formaturas, casamentos, eventos corporativos. Nicho de alto ticket.</div></div>
+          <div style="padding:10px 14px;background:var(--glass);border:1px solid var(--border);border-radius:4px"><div style="display:flex;align-items:center;gap:6px;margin-bottom:2px"><span style="font-size:10px;color:var(--accent)">● MÉDIA</span><span style="font-size:12px;color:var(--fg)">Indicação Premiada</span></div><div style="font-size:11px;color:var(--fg2);font-weight:300">Programa de indicação com desconto. Cliente fiel é seu melhor vendedor.</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ANÁLISE DE SENTIMENTO -->
+<section class="section" id="sentimento">
+  <div class="section-inner">
+    <div class="section-label">⟡ Percepção Pública</div>
+    <h2 class="section-title">Análise de sentimento</h2>
+    <p class="section-desc">O BlackBox analisa o teor das avaliações e menções nas redes sociais, classificando cada uma como positiva, neutra ou negativa. A nuvem de palavras destaca os termos mais frequentes nos feedbacks.</p>
+    <div class="grid-2 reveal">
+      <div class="card" style="padding:20px">
+        <div style="font-size:11px;color:var(--fg2);margin-bottom:12px;letter-spacing:0.08em">SENTIMENTO · 90 dias</div>
+        <div style="display:flex;gap:4px;height:28px;border-radius:4px;overflow:hidden;margin-bottom:8px">
+          <div style="flex:42;background:var(--green);display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;font-family:var(--mono)">42%</div>
+          <div style="flex:35;background:var(--fg2);display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;font-family:var(--mono)">35%</div>
+          <div style="flex:23;background:var(--rose);display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;font-family:var(--mono)">23%</div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:11px;font-family:var(--mono)">
+          <span style="color:var(--green)">● Positivo 42%</span>
+          <span style="color:var(--fg2)">● Neutro 35%</span>
+          <span style="color:var(--rose)">● Negativo 23%</span>
+        </div>
+        <div style="margin-top:14px;display:flex;flex-wrap:wrap;gap:4px;justify-content:center;font-size:13px;font-family:var(--mono);color:var(--fg2)">
+          <span style="color:var(--fg)">"atendimento"</span>
+          <span style="color:var(--accent)">"demora"</span>
+          <span>"preço"</span>
+          <span style="color:var(--green)">"qualidade"</span>
+          <span>"agendamento"</span>
+          <span style="color:var(--rose)">"espera"</span>
+          <span style="color:var(--fg)">"recomendo"</span>
+          <span>"ambiente"</span>
+          <span style="color:var(--accent)">"volto"</span>
+        </div>
+      </div>
+      <div class="card" style="padding:20px">
+        <div style="font-size:11px;color:var(--fg2);margin-bottom:12px;letter-spacing:0.08em">MENÇÕES POR CANAL</div>
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--card);border:1px solid var(--border);border-radius:4px"><i data-lucide="map-pin" style="width:14px;height:14px;color:var(--accent);flex-shrink:0"></i><div><div style="font-size:13px;color:var(--fg)">Google</div><div style="font-size:11px;color:var(--fg2)">187 avaliações · 4.2★</div></div></div>
+          <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--card);border:1px solid var(--border);border-radius:4px"><i data-lucide="camera" style="width:14px;height:14px;color:var(--accent);flex-shrink:0"></i><div><div style="font-size:13px;color:var(--fg)">Instagram</div><div style="font-size:11px;color:var(--fg2)">64 menções · 48% positivo</div></div></div>
+          <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--card);border:1px solid var(--border);border-radius:4px"><i data-lucide="thumbs-up" style="width:14px;height:14px;color:var(--accent);flex-shrink:0"></i><div><div style="font-size:13px;color:var(--fg)">Facebook</div><div style="font-size:11px;color:var(--fg2)">28 menções · 3.8★</div></div></div>
+          <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--card);border:1px solid var(--border);border-radius:4px"><i data-lucide="scissors" style="width:14px;height:14px;color:var(--accent);flex-shrink:0"></i><div><div style="font-size:13px;color:var(--fg)">Booksy</div><div style="font-size:11px;color:var(--fg2)">12 agendamentos · 4.5★</div></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PLANO DE AÇÃO -->
+<section class="section" id="plano">
+  <div class="section-inner">
+    <div class="section-label">⟡ Roteiro de Execução</div>
+    <h2 class="section-title">Plano de ação em 3 fases</h2>
+    <p class="section-desc">Cada fase com ações concretas, prazos, custos estimados e métricas de sucesso. Do imediato ao transformador.</p>
+    <div class="grid-3 reveal">
+      <div class="card" style="padding:20px;border-color:rgba(225,29,72,0.15)">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px"><span style="width:24px;height:24px;border-radius:50%;background:var(--rose);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:10px;color:#fff">1</span><span style="font-size:14px;color:var(--fg)">Curto Prazo</span><span style="font-size:10px;color:var(--fg2);margin-left:auto">30 dias</span></div>
+        <ul style="list-style:none">
+          <li style="font-size:12px;color:var(--fg2);padding:4px 0;border-bottom:1px solid var(--border);font-weight:300">▸ Responder avaliações do Google</li>
+          <li style="font-size:12px;color:var(--fg2);padding:4px 0;border-bottom:1px solid var(--border);font-weight:300">▸ Criar Instagram + WhatsApp Business</li>
+          <li style="font-size:12px;color:var(--fg2);padding:4px 0;border-bottom:1px solid var(--border);font-weight:300">▸ Agendamento por WhatsApp</li>
+          <li style="font-size:12px;color:var(--fg2);padding:4px 0;border-bottom:1px solid var(--border);font-weight:300">▸ Maquininha de cartão (Stone/SumUp)</li>
+          <li style="font-size:12px;color:var(--fg2);padding:4px 0;font-weight:300">▸ Google Meu Negócio completo</li>
+        </ul>
+        <div style="font-size:10px;color:var(--rose);margin-top:8px;padding-top:8px;border-top:1px solid var(--border)">Custo: ~R$ 200 · Impacto: alto</div>
+      </div>
+      <div class="card" style="padding:20px;border-color:rgba(245,158,11,0.15)">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px"><span style="width:24px;height:24px;border-radius:50%;background:var(--amber);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:10px;color:#fff">2</span><span style="font-size:14px;color:var(--fg)">Médio Prazo</span><span style="font-size:10px;color:var(--fg2);margin-left:auto">90 dias</span></div>
+        <ul style="list-style:none">
+          <li style="font-size:12px;color:var(--fg2);padding:4px 0;border-bottom:1px solid var(--border);font-weight:300">▸ Lançar linha de produtos no balcão</li>
+          <li style="font-size:12px;color:var(--fg2);padding:4px 0;border-bottom:1px solid var(--border);font-weight:300">▸ Campanha de avaliações (clientes fiéis)</li>
+          <li style="font-size:12px;color:var(--fg2);padding:4px 0;border-bottom:1px solid var(--border);font-weight:300">▸ Parcerias com eventos e formaturas</li>
+          <li style="font-size:12px;color:var(--fg2);padding:4px 0;font-weight:300">▸ Meta: 4.5★ no Google</li>
+        </ul>
+        <div style="font-size:10px;color:var(--amber);margin-top:8px;padding-top:8px;border-top:1px solid var(--border)">Custo: ~R$ 1.2k · Impacto: médio</div>
+      </div>
+      <div class="card" style="padding:20px;border-color:rgba(34,197,94,0.15)">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px"><span style="width:24px;height:24px;border-radius:50%;background:var(--green);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:10px;color:#fff">3</span><span style="font-size:14px;color:var(--fg)">Longo Prazo</span><span style="font-size:10px;color:var(--fg2);margin-left:auto">6-12 meses</span></div>
+        <ul style="list-style:none">
+          <li style="font-size:12px;color:var(--fg2);padding:4px 0;border-bottom:1px solid var(--border);font-weight:300">▸ Site com agendamento online integrado</li>
+          <li style="font-size:12px;color:var(--fg2);padding:4px 0;border-bottom:1px solid var(--border);font-weight:300">▸ Programa de fidelidade digital</li>
+          <li style="font-size:12px;color:var(--fg2);padding:4px 0;border-bottom:1px solid var(--border);font-weight:300">▸ Segunda unidade ou expansão</li>
+          <li style="font-size:12px;color:var(--fg2);padding:4px 0;font-weight:300">▸ Faturamento recorrente: +30%</li>
+        </ul>
+        <div style="font-size:10px;color:var(--green);margin-top:8px;padding-top:8px;border-top:1px solid var(--border)">Custo: ~R$ 8k · Impacto: transformador</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ROI CALCULATOR -->
+<section class="section" id="roi">
+  <div class="section-inner">
+    <div class="section-label">⟡ Projeção Financeira</div>
+    <h2 class="section-title">Calculadora de ROI</h2>
+    <p class="section-desc">Arraste os sliders para simular o retorno do investimento com base no seu ticket médio, investimento em melhorias e conversão esperada.</p>
+    <div class="grid-2 reveal">
+      <div class="card" style="padding:24px">
+        <div class="roi-sliders">
+          <div class="roi-slider-row"><div class="rs-hdr"><span>Investimento em melhorias</span><span id="roiInvLabel">R$ 5.000</span></div><div class="rs-track"><div class="rs-fill" id="roiInvFill" style="width:50%"></div><input type="range" id="roiInv" min="0" max="20000" value="5000" step="500"></div></div>
+          <div class="roi-slider-row"><div class="rs-hdr"><span>Ticket médio atual</span><span id="roiTicketLabel">R$ 62</span></div><div class="rs-track"><div class="rs-fill" id="roiTicketFill" style="width:42%"></div><input type="range" id="roiTicket" min="20" max="150" value="62" step="1"></div></div>
+          <div class="roi-slider-row"><div class="rs-hdr"><span>Novos clientes/mês</span><span id="roiClientLabel">40</span></div><div class="rs-track"><div class="rs-fill" id="roiClientFill" style="width:40%"></div><input type="range" id="roiClient" min="5" max="100" value="40" step="1"></div></div>
+        </div>
+        <div class="roi-result">
+          <div class="rr-num" id="roiResult">R$ 29.760</div>
+          <div class="rr-label">Retorno estimado em 12 meses</div>
+        </div>
+      </div>
+      <div class="card" style="padding:20px">
+        <div style="font-size:11px;color:var(--fg2);margin-bottom:12px;letter-spacing:0.08em">PROJEÇÃO 1/3/5 ANOS</div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div style="padding:12px 16px;background:var(--glass);border:1px solid var(--border);border-radius:4px">
+            <div style="display:flex;justify-content:space-between"><span style="font-size:13px;color:var(--fg)">1 ano</span><span style="font-size:13px;color:var(--green);font-family:var(--mono)">R$ 29.760</span></div>
+            <div style="font-size:11px;color:var(--fg2);margin-top:2px">Cenário realista com execução do plano curto prazo</div>
+          </div>
+          <div style="padding:12px 16px;background:var(--glass);border:1px solid var(--border);border-radius:4px">
+            <div style="display:flex;justify-content:space-between"><span style="font-size:13px;color:var(--fg)">3 anos</span><span style="font-size:13px;color:var(--accent);font-family:var(--mono)">R$ 108k — R$ 145k</span></div>
+            <div style="font-size:11px;color:var(--fg2);margin-top:2px">Cenário otimista com expansão para segunda unidade</div>
+          </div>
+          <div style="padding:12px 16px;background:var(--glass);border:1px solid var(--border);border-radius:4px">
+            <div style="display:flex;justify-content:space-between"><span style="font-size:13px;color:var(--fg)">5 anos</span><span style="font-size:13px;color:var(--fg);font-family:var(--mono)">R$ 280k+</span></div>
+            <div style="font-size:11px;color:var(--fg2);margin-top:2px">Cenário com marca consolidada e presença digital forte</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TENDÊNCIAS + RISCOS -->
+<section class="section" id="tendencias">
+  <div class="section-inner">
+    <div class="section-label">⟡ Cenários Futuros</div>
+    <h2 class="section-title">Tendências, riscos e oportunidades</h2>
+    <p class="section-desc">O BlackBox projeta cenários com base nos indicadores atuais, tendências do segmento e movimentação dos concorrentes.</p>
+    <div class="grid-3 reveal">
+      <div class="card" style="padding:18px">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px"><span style="width:6px;height:6px;border-radius:50%;background:var(--green)"></span><span style="font-size:12px;color:var(--fg);font-weight:400">Tendências emergentes</span></div>
+        <div style="font-size:12px;color:var(--fg2);font-weight:300;line-height:1.7">Agendamento online será padrão em 90% do setor até 2027. Produtos masculinos crescem 18% ao ano. Quem não digitalizar, perde.</div>
+      </div>
+      <div class="card" style="padding:18px">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px"><span style="width:6px;height:6px;border-radius:50%;background:var(--rose)"></span><span style="font-size:12px;color:var(--fg);font-weight:400">Riscos iminentes</span></div>
+        <div style="font-size:12px;color:var(--fg2);font-weight:300;line-height:1.7">Novos entrantes com presença digital forte. Se não agir em 6 meses, perde participação de mercado. Risco de estagnação em 2 anos.</div>
+      </div>
+      <div class="card" style="padding:18px">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px"><span style="width:6px;height:6px;border-radius:50%;background:var(--accent)"></span><span style="font-size:12px;color:var(--fg);font-weight:400">Oportunidades estratégicas</span></div>
+        <div style="font-size:12px;color:var(--fg2);font-weight:300;line-height:1.7">Bairro em crescimento com novos condomínios. Janela de 18 meses para se posicionar como referência local antes da saturação.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FONTES -->
+<section class="section" id="fontes">
+  <div class="section-inner">
+    <div class="section-label">⟡ Transparência</div>
+    <h2 class="section-title">Fontes e badges de confiança</h2>
+    <p class="section-desc">Cada dado do diagnóstico tem uma fonte. Badges indicam o nível de confiança: <span style="color:var(--accent)">●</span> verificado, <span style="color:var(--amber)">●</span> estimado, <span style="color:var(--rose)">●</span> inferido.</p>
+    <div class="grid-3 reveal" style="margin-bottom:16px">
+      <div class="card" style="padding:16px;text-align:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" style="display:block;margin:0 auto 4px"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg><span style="font-size:12px;color:var(--green)">Verificado</span><span style="font-size:10px;color:var(--fg2);display:block;font-weight:300">Fonte oficial confirmada</span></div>
+      <div class="card" style="padding:16px;text-align:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--amber)" stroke-width="2" style="display:block;margin:0 auto 4px"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg><span style="font-size:12px;color:var(--amber)">Estimado</span><span style="font-size:10px;color:var(--fg2);display:block;font-weight:300">Cálculo indireto ou extrapolação</span></div>
+      <div class="card" style="padding:16px;text-align:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--rose)" stroke-width="2" style="display:block;margin:0 auto 4px"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg><span style="font-size:12px;color:var(--rose)">Inferido</span><span style="font-size:10px;color:var(--fg2);display:block;font-weight:300">Dedução lógica sem confirmação</span></div>
+    </div>
+    <div class="card" style="padding:18px;max-width:480px;margin:0 auto">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;font-size:12px;font-family:var(--mono)">
+        <div style="display:flex;align-items:center;gap:6px;padding:4px 8px;border-radius:4px;background:var(--glass)"><span style="color:var(--accent)">&#x25CF;</span> Google Maps</div>
+        <div style="display:flex;align-items:center;gap:6px;padding:4px 8px;border-radius:4px;background:var(--glass)"><span style="color:var(--accent)">&#x25CF;</span> Instagram</div>
+        <div style="display:flex;align-items:center;gap:6px;padding:4px 8px;border-radius:4px;background:var(--glass)"><span style="color:var(--accent)">&#x25CF;</span> Facebook</div>
+        <div style="display:flex;align-items:center;gap:6px;padding:4px 8px;border-radius:4px;background:var(--glass)"><span style="color:var(--accent)">&#x25CF;</span> Booksy</div>
+        <div style="display:flex;align-items:center;gap:6px;padding:4px 8px;border-radius:4px;background:var(--glass)"><span style="color:var(--amber)">&#x25CF;</span> Google Ads</div>
+        <div style="display:flex;align-items:center;gap:6px;padding:4px 8px;border-radius:4px;background:var(--glass)"><span style="color:var(--amber)">&#x25CF;</span> Faturamento (porte)</div>
+        <div style="display:flex;align-items:center;gap:6px;padding:4px 8px;border-radius:4px;background:var(--glass)"><span style="color:var(--rose)">&#x25CF;</span> Ticket (correlação)</div>
+        <div style="display:flex;align-items:center;gap:6px;padding:4px 8px;border-radius:4px;background:var(--glass)"><span style="color:var(--rose)">&#x25CF;</span> Crescimento (setor)</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section style="padding:60px 24px;position:relative;z-index:2;display:flex;justify-content:center">
+  <div class="section-inner" style="text-align:center;max-width:520px">
+    <div class="hero-badge" style="margin:0 auto 14px;width:fit-content"><span class="tag">⟡</span> Seu diagnóstico pode ser o próximo</div>
+    <h2 class="section-title" style="font-size:22px;margin-bottom:8px">Quer o seu <span style="color:var(--accent)">BlackBox</span>?</h2>
+    <p style="font-size:13px;color:var(--fg2);font-weight:300;margin-bottom:20px;line-height:1.7">17 módulos · Dados reais · Entrega 48h · Indestrutível</p>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:8px">
+      <a class="btn accent" href="https://hotmart.com/pt-br/marketplace/produtos/blackbox-agente-de-inteligencia-de-mercado/F106228317S" target="_blank" style="min-width:240px;justify-content:center;padding:14px 28px"><i data-lucide="shopping-cart" style="width:14px;height:14px"></i>Comprar · R$ 599,90</a>
+      <a class="btn" href="https://wa.me/5547999220690?text=Quero%20meu%20BlackBox" target="_blank" style="min-width:240px;justify-content:center"><i data-lucide="message-circle" style="width:14px;height:14px"></i>Comprar via WhatsApp</a>
+    </div>
+  </div>
+</section>
+
+<div class="footer">
+  <strong>BLACKBOX DEMONSTRATIVO</strong> · <span class="lab">CHARLES IDEIAS LAB</span> · 2026<br>
+  <span class="note">Dados ilustrativos para demonstração. Diagnóstico gerado por CHARLES IDEIAS LAB</span>
+</div>
+
+<script>
+// Progress bar
+var pf = document.getElementById('progressFill');
+document.addEventListener('scroll', function(){
+  var p = window.scrollY / (document.documentElement.scrollHeight - window.innerHeight);
+  pf.style.width = Math.min(100, p * 100) + '%';
+});
+
+// Reveal
+var ro = new IntersectionObserver(function(entries){
+  entries.forEach(function(e){
+    if(e.isIntersecting){ e.target.classList.add('visible'); ro.unobserve(e.target); }
+  });
+}, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
+document.querySelectorAll('.reveal').forEach(function(e){ ro.observe(e); });
+
+// Counters
+function animateCounter(el, target, duration) {
+  var start = performance.now();
+  function update(now) {
+    var elapsed = now - start;
+    var progress = Math.min(1, elapsed / duration);
+    var eased = 1 - Math.pow(1 - progress, 3);
+    el.textContent = Math.round(target * eased).toLocaleString('pt-BR');
+    if (progress < 1) requestAnimationFrame(update);
+    else el.textContent = target.toLocaleString('pt-BR');
+  }
+  requestAnimationFrame(update);
+}
+var co = new IntersectionObserver(function(entries){
+  entries.forEach(function(e){
+    if(e.isIntersecting){
+      var el = e.target;
+      var target = parseInt(el.dataset.target);
+      animateCounter(el, target, 1800);
+      co.unobserve(el);
+    }
+  });
+}, { threshold: 0.3 });
+document.querySelectorAll('.counter').forEach(function(e){ co.observe(e); });
+
+// Timeline fill
+var tlFill = document.getElementById('tlFill');
+if(tlFill){
+  document.addEventListener('scroll', function(){
+    var wrap = document.querySelector('.tl');
+    if(!wrap) return;
+    var p = Math.max(0, Math.min(1, (-wrap.getBoundingClientRect().top) / (wrap.offsetHeight - window.innerHeight)));
+    tlFill.style.height = (p * 100) + '%';
+  });
+}
+
+// Radar sliders
+var radarChart = null;
+function initRadarSliders(){
+  var rows = document.querySelectorAll('#radarSliders .radar-slider-row');
+  var labels = [];
+  var values = [];
+  rows.forEach(function(r){
+    var inp = r.querySelector('input');
+    var fill = r.querySelector('.rs-fill');
+    var val = r.querySelector('.rs-val');
+    var label = r.querySelector('.rs-label');
+    labels.push(label.textContent.trim());
+    values.push(parseInt(inp.value));
+    inp.addEventListener('input', function(){
+      var v = parseInt(this.value);
+      fill.style.width = v + '%';
+      val.textContent = v;
+      values[Array.from(rows).indexOf(r)] = v;
+      if(radarChart) {
+        radarChart.data.datasets[0].data = values.slice();
+        radarChart.update();
+      }
+    });
+  });
+  // Create radar chart for diag section
+  var ctx = document.getElementById('radarDiagChart').getContext('2d');
+  radarChart = new Chart(ctx, {
+    type: 'radar',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'Seu negócio',
+        data: values.slice(),
+        borderColor: '#7c3aed',
+        backgroundColor: 'rgba(124,58,237,0.1)',
+        borderWidth: 1.5,
+        pointBackgroundColor: '#7c3aed',
+        pointRadius: 3,
+        pointBorderColor: 'transparent'
+      },{
+        label: 'Média do setor',
+        data: [72,68,55,40,60,45],
+        borderColor: 'rgba(255,255,255,0.1)',
+        backgroundColor: 'rgba(255,255,255,0.02)',
+        borderWidth: 1,
+        borderDash: [3,3],
+        pointBackgroundColor: 'rgba(255,255,255,0.15)',
+        pointRadius: 2,
+        pointBorderColor: 'transparent'
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { labels: { color: 'rgba(255,255,255,0.35)', font: { family: 'JetBrains Mono', size: 10 } } } },
+      scales: { r: { beginAtZero: true, max: 100, grid: { color: 'rgba(255,255,255,0.04)' }, pointLabels: { color: 'rgba(255,255,255,0.5)', font: { family: 'JetBrains Mono', size: 9 } } } }
+    }
+  });
+}
+initRadarSliders();
+
+// ROI calculator
+function calcROI(){
+  var inv = parseInt(document.getElementById('roiInv').value);
+  var ticket = parseInt(document.getElementById('roiTicket').value);
+  var clients = parseInt(document.getElementById('roiClient').value);
+  document.getElementById('roiInvLabel').textContent = 'R$ ' + inv.toLocaleString('pt-BR');
+  document.getElementById('roiTicketLabel').textContent = 'R$ ' + ticket;
+  document.getElementById('roiClientLabel').textContent = clients;
+  document.getElementById('roiInvFill').style.width = (inv / 20000 * 100) + '%';
+  document.getElementById('roiTicketFill').style.width = ((ticket - 20) / 130 * 100) + '%';
+  document.getElementById('roiClientFill').style.width = (clients / 100 * 100) + '%';
+  var result = (ticket * clients * 12) - inv;
+  document.getElementById('roiResult').textContent = 'R$ ' + result.toLocaleString('pt-BR');
+}
+document.getElementById('roiInv').addEventListener('input', calcROI);
+document.getElementById('roiTicket').addEventListener('input', calcROI);
+document.getElementById('roiClient').addEventListener('input', calcROI);
+calcROI();
+
+// Lucide
+if(typeof lucide !== 'undefined') lucide.createIcons();
+
+// Theme toggle
+function toggleTheme(){
+  var e = document.documentElement;
+  var t = e.getAttribute('data-theme') === 'light';
+  e.setAttribute('data-theme', t ? 'dark' : 'light');
+  localStorage.setItem('bb-theme', t ? 'dark' : 'light');
+  document.getElementById('themeToggle').textContent = t ? '🌙' : '☀️';
+}
+// Sync button icon on load
+document.getElementById('themeToggle').textContent = document.documentElement.getAttribute('data-theme') === 'light' ? '☀️' : '🌙';
+
+// Oculos (accessibility)
+function toggleOculos(){
+  var e = document.documentElement;
+  var a = e.getAttribute('data-oculos') === 'active';
+  e.setAttribute('data-oculos', a ? '' : 'active');
+  localStorage.setItem('bb-oculos', a ? '' : 'active');
+  var b = document.getElementById('oculosToggle').querySelector('i');
+  if (b) { b.setAttribute('data-lucide', a ? 'eye' : 'eye-off'); lucide.createIcons(); }
+}
+(function(){
+  var a = localStorage.getItem('bb-oculos');
+  if (a === 'active') document.documentElement.setAttribute('data-oculos', 'active');
+})();
+
+
+// Charts
+var baseOpts = {
+  responsive: true, maintainAspectRatio: false,
+  plugins: {
+    legend: { labels: { color: 'rgba(255,255,255,0.35)', font: { family: 'JetBrains Mono', size: 10 }, boxWidth: 12, padding: 8 } },
+    tooltip: {
+      backgroundColor: 'rgba(9,9,11,0.9)',
+      titleFont: { family: 'JetBrains Mono', size: 11 },
+      bodyFont: { family: 'JetBrains Mono', size: 11 },
+      borderColor: 'rgba(255,255,255,0.06)',
+      borderWidth: 1,
+      padding: 8
+    }
+  }
+};
+var gridCol = { color: 'rgba(255,255,255,0.04)' };
+var txtCol = 'rgba(255,255,255,0.35)';
+
+new Chart(document.getElementById('radarChart'), {
+  type: 'radar',
+  data: {
+    labels: ['Presença Digital','Reputação','Precificação','Inovação','Atendimento','Marketing'],
+    datasets: [{
+      label: 'Seu negócio',
+      data: [28,72,58,22,35,18],
+      borderColor: '#7c3aed',
+      backgroundColor: 'rgba(124,58,237,0.1)',
+      borderWidth: 1.5,
+      pointBackgroundColor: '#7c3aed',
+      pointRadius: 3
+    },{
+      label: 'Média do setor',
+      data: [72,68,55,40,60,45],
+      borderColor: 'rgba(255,255,255,0.1)',
+      backgroundColor: 'rgba(255,255,255,0.02)',
+      borderWidth: 1,
+      borderDash: [3,3],
+      pointBackgroundColor: 'rgba(255,255,255,0.15)',
+      pointRadius: 2
+    }]
+  },
+  options: Object.assign({}, baseOpts, {
+    scales: {
+      r: {
+        beginAtZero: true, max: 100,
+        grid: { color: 'rgba(255,255,255,0.04)' },
+        pointLabels: { color: 'rgba(255,255,255,0.5)', font: { size: 9 } },
+        ticks: { display: true, color: 'rgba(255,255,255,0.2)', font: { size: 8 }, stepSize: 20, backdropColor: 'transparent' }
+      }
+    }
+  })
+});
+
+new Chart(document.getElementById('lineChart'), {
+  type: 'line',
+  data: {
+    labels: ['Ano 1','Ano 2','Ano 3','Ano 4','Ano 5','Ano 6','Ano 7'],
+    datasets: [{
+      label: 'Faturamento (R$ k)',
+      data: [8,6,9,14,18,18.5,22],
+      borderColor: '#7c3aed',
+      backgroundColor: 'rgba(124,58,237,0.06)',
+      borderWidth: 1.5,
+      fill: true,
+      tension: 0.3,
+      pointBackgroundColor: '#7c3aed',
+      pointRadius: 2
+    }]
+  },
+  options: Object.assign({}, baseOpts, {
+    scales: {
+      x: { grid: gridCol, ticks: { color: txtCol, font: { size: 10 } } },
+      y: { grid: gridCol, ticks: { color: txtCol, font: { size: 10 } }, title: { display: true, text: 'R$ mil/mês', color: txtCol, font: { family: 'JetBrains Mono', size: 10 } } }
+    }
+  })
+});
+
+new Chart(document.getElementById('barChart'), {
+  type: 'bar',
+  data: {
+    labels: ['Você','Conc A','Conc B','Conc C','Conc D'],
+    datasets: [{
+      label: 'Ticket médio (R$)',
+      data: [62,55,48,70,65],
+      backgroundColor: ['rgba(124,58,237,0.25)','rgba(16,185,129,0.2)','rgba(16,185,129,0.2)','rgba(16,185,129,0.2)','rgba(16,185,129,0.2)'],
+      borderColor: ['#7c3aed','#10b981','#10b981','#10b981','#10b981'],
+      borderWidth: 1,
+      borderRadius: 4,
+      borderSkipped: false
+    }]
+  },
+  options: Object.assign({}, baseOpts, {
+    scales: {
+      x: { grid: gridCol, ticks: { color: txtCol, font: { size: 10 } } },
+      y: { grid: gridCol, ticks: { color: txtCol, font: { size: 10 } }, title: { display: true, text: 'R$', color: txtCol, font: { family: 'JetBrains Mono', size: 10 } } }
+    }
+  })
+});
+
+new Chart(document.getElementById('doughnutChart'), {
+  type: 'doughnut',
+  data: {
+    labels: ['Serviço Principal','Secundário','Produtos','Premium','Outros'],
+    datasets: [{
+      data: [42,25,18,10,5],
+      backgroundColor: ['rgba(124,58,237,0.3)','rgba(16,185,129,0.3)','rgba(94,176,229,0.3)','rgba(245,158,11,0.3)','rgba(255,255,255,0.06)'],
+      borderColor: ['#7c3aed','#10b981','#5eb0e5','#f59e0b','rgba(255,255,255,0.1)'],
+      borderWidth: 1
+    }]
+  },
+  options: Object.assign({}, baseOpts, { cutout: '55%' })
+});
+
+// Leaflet map - centro de Itajaí
+var map = L.map('map', { zoomControl: false, scrollWheelZoom: false }).setView([-26.9166, -48.6589], 13);
+L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+  attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>',
+  maxZoom: 19
+}).addTo(map);
+
+// Seu negócio
+L.marker([-26.9166, -48.6589], {
+  icon: L.divIcon({ className: '', html: '<div style="width:16px;height:16px;background:#7c3aed;border:2px solid #fff;border-radius:50%;box-shadow:0 0 12px rgba(124,58,237,0.5)"></div>', iconSize: [16,16], iconAnchor: [8,8] })
+}).addTo(map).bindPopup('<b style="color:#7c3aed">Seu Negócio</b><br>Região de atuação<br><span style="font-size:10px;color:#888">42% de market share estimado</span>');
+
+// Concorrentes diretos (vermelho)
+[ { pos: [-26.9180, -48.6520], name: 'Conc. A', nota: '4.7★', preco: 'R$ 55' },
+  { pos: [-26.9140, -48.6600], name: 'Conc. B', nota: '4.5★', preco: 'R$ 48' }
+].forEach(function(c){
+  L.marker(c.pos, {
+    icon: L.divIcon({ className: '', html: '<div style="width:12px;height:12px;background:#e11d48;border:2px solid #fff;border-radius:50%;opacity:0.8"></div>', iconSize: [12,12], iconAnchor: [6,6] })
+  }).addTo(map).bindPopup('<b style="color:#e11d48">' + c.name + '</b><br>Nota: ' + c.nota + ' · Preço: ' + c.preco + '<br><span style="font-size:10px;color:#888">Concorrência direta</span>');
+});
+
+// Concorrentes indiretos (âmbar)
+[ { pos: [-26.9220, -48.6620], name: 'Conc. C', nota: '4.8★', preco: 'R$ 70' },
+  { pos: [-26.9100, -48.6550], name: 'Conc. D', nota: '4.3★', preco: 'R$ 50' }
+].forEach(function(c){
+  L.marker(c.pos, {
+    icon: L.divIcon({ className: '', html: '<div style="width:10px;height:10px;background:#f59e0b;border:2px solid #fff;border-radius:50%;opacity:0.7"></div>', iconSize: [10,10], iconAnchor: [5,5] })
+  }).addTo(map).bindPopup('<b style="color:#f59e0b">' + c.name + '</b><br>Nota: ' + c.nota + ' · Preço: ' + c.preco + '<br><span style="font-size:10px;color:#888">Concorrência indireta</span>');
+});
+
+L.circle([-26.9166, -48.6589], { radius: 1500, color: '#7c3aed', fillColor: 'rgba(124,58,237,0.06)', fillOpacity: 0.3, weight: 1 }).addTo(map);
+
+// Legend
+var legend = L.control({ position: 'bottomleft' });
+legend.onAdd = function(){
+  var div = L.DomUtil.create('div', '');
+  div.style.cssText = 'font-family:JetBrains Mono;font-size:9px;background:rgba(9,9,11,0.8);padding:6px 10px;border-radius:4px;backdrop-filter:blur(4px);line-height:1.6';
+  div.innerHTML = '<div><span style="color:#7c3aed">&#9679;</span> Seu negócio</div><div><span style="color:#e11d48">&#9679;</span> Direta</div><div><span style="color:#f59e0b">&#9679;</span> Indireta</div>';
+  return div;
+};
+legend.addTo(map);
+</script>
+</body>
+</html>
