@@ -59,6 +59,6 @@ if (-not $?) {
 }
 
 Write-Host "`n[DEPLOY CONCLUIDO]" -ForegroundColor Green
-Write-Host "https://agenteblackbox.github.io/blackbox/" -ForegroundColor Green
+Write-Host "https://agenteblackbox.qzz.io/" -ForegroundColor Green
 
 Start-Sleep -Seconds 2
