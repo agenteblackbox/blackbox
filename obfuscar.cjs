@@ -3,7 +3,7 @@ const Terser = require('terser');
 const fs = require('fs');
 const path = require('path');
 
-const files = ['index.html', 'demo.html', 'briefing.html', 'captura-copa-2026.html', 'copa-2026-diagnostico.html'];
+const files = ['index.html', 'demo.html', 'briefing.html', 'copa-2026.html', 'diagnostico-copa-2026.html'];
 const srcDir = __dirname;
 
 async function obfuscar(html, filename) {
