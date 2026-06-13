@@ -44,6 +44,13 @@ if (-not $?) {
     exit 1
 }
 
+Write-Host "[Sincronizando com remoto...]" -ForegroundColor Cyan
+git pull origin main --rebase --autostash
+if (-not $?) {
+    Write-Host "[ERRO] Pull/rebase falhou. Resolva conflitos manualmente." -ForegroundColor Red
+    exit 1
+}
+
 Write-Host "[Enviando pra main...]" -ForegroundColor Cyan
 git push origin main
 if (-not $?) {
